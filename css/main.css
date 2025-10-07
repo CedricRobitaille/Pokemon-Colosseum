@@ -4,7 +4,7 @@
   --bg: #f6f8fc;
   --white: #fff;
   --black: #161b1f;
-  --dark: #143d58;
+  --dark: #0d2c41;
   --grey: #6f7b8b;
   --light-grey: #b2bdcc;
 
@@ -39,6 +39,60 @@ main {
   padding: 2rem;
   max-width: 82rem;
   margin: 0 auto;
+}
+
+h1 {
+  color: var(--dark);
+  font-size: 3.5rem;
+  line-height: 1.125;
+  margin-bottom: 2rem;
+}
+
+
+/* -------------------------------------- */
+/* --------------- BUTTONS -------------- */
+/* -------------------------------------- */
+
+.btn {
+  background: var(--poke-red);
+  border: none;
+  padding: .75rem 1.5rem;
+  border-radius: 12px;
+
+  color: var(--white);
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--poke-red-dark);
+}
+
+
+.btn-cta {
+  margin-top: .5rem;
+  margin-bottom: 0;
+
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  letter-spacing: 1.25px;
+  border: 2px solid var(--poke-red);
+
+  box-shadow: 0 2px 16px -1px var(--drop-shadow);
+  transition: .5s;
+}
+
+.btn-cta:hover {
+  margin-top: 0rem;
+  margin-bottom: .5rem;
+
+  background-color: var(--white);
+
+  color: var(--poke-red);
+
+  box-shadow: 0 8px 16px -2px var(--drop-shadow);
 }
 
 
@@ -143,5 +197,34 @@ nav {
 
 
 /* -------------------------------------- */
-/* ------------ NEXT SECTION ------------ */
+/* ------------ LANDING PAGE ------------ */
 /* -------------------------------------- */
+
+header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 4rem;
+
+  width: 100%;
+  min-height: 32rem;
+
+  background-color: var(--white);
+  border-radius: 24px;
+  padding: 4rem;
+  margin-bottom: 4rem;
+
+  box-shadow: 4px 8px 24px -6px var(--drop-shadow);
+}
+
+header .header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: start;
+}
+
+header span {
+  color: var(--poke-red);
+  font-weight: 300;
+}
