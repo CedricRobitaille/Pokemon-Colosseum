@@ -5,15 +5,22 @@
   --white: #fff;
   --black: #161b1f;
   --dark: #143d58;
+  --grey: #6f7b8b;
+  --light-grey: #b2bdcc;
+
+  --drop-shadow: rgba(63, 102, 153, 0.125);
+
+  --poke-red: #ff5350;
+  --poke-red-dark: #9e1e1c;
 }
 
 * {
   box-sizing: border-box;
+
   margin: 0;
   padding: 0;
+
   color: var(--black);
-  
-  font-family: ;
 }
 
 html {
@@ -21,7 +28,6 @@ html {
 
   font-family: "Lexend", sans-serif;
   font-optical-sizing: auto;
-  font-weight: <weight>;
   font-style: normal;
 }
 
@@ -46,34 +52,96 @@ main {
 nav {
   display: grid;
   grid-template-columns: 1fr auto;
-  padding: 1.35rem 3rem 1.5rem;
-  background-color: var(--white);
-  margin-bottom: 1rem;
   align-items: center;
+
+  padding: .75rem 3rem .75rem;
+  margin-bottom: 1rem;
+  background-color: var(--white);
+
+  box-shadow: 0 0 16px -4px var(--drop-shadow);
 }
 
 #nav-left {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
   align-items: center;
+  gap: 2rem;
+}
+
+#nav-left p:after {
+  content: "";
+
+  position: absolute;
+  height: 3px;
+  width: 0rem;
+  left: calc(50% - 0rem);
+  bottom: -1.5rem;
+
+  background-color: var(--poke-red);
+}
+
+#nav-left .current-page:after {
+  width: 85%;
+  left: calc(7.5%);
+}
+
+#nav-left p:not(#logo-nav) {
+  position: relative;
+
+  font-size: 1.5rem;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+#nav-left p:hover:not(#logo-nav) {
+  color: var(--poke-red-dark);
 }
 
 #logo-nav {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  color: var(--poke-red);
   font-size: 1.5rem;
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
-  position: relative;
-  margin-left: 2rem;
 }
 
-#logo-nav:before {
-  position: absolute;
+#logo {
   content: "";
+
   display: inline-block;
-  height: 2rem;
-  width: 2rem;
-  background-color: var(--bg);
-  left: -3rem;
+  height: 1.75rem;
+  width: 1.75rem;
+
+  background-image: url("../images/icon_logo.svg");
 }
+
+#battle-nav {
+  padding: .85rem 2rem 1rem;
+  background-color: var(--poke-red);
+  border-radius: 16px;
+
+  color: var(--white);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+
+  cursor: pointer;
+}
+
+#battle-nav:hover {
+  background-color: var(--poke-red-dark);
+}
+
+
+
+
+/* -------------------------------------- */
+/* ------------ NEXT SECTION ------------ */
+/* -------------------------------------- */
