@@ -6,7 +6,7 @@
   --black: #161b1f;
   --dark: #0d2c41;
   --grey: #6f7b8b;
-  --light-grey: #b2bdcc;
+  --light-grey: #e9eff8;
 
   --drop-shadow: rgba(63, 102, 153, 0.125);
 
@@ -95,6 +95,22 @@ h1 {
   box-shadow: 0 8px 16px -2px var(--drop-shadow);
 }
 
+.btn-ghost {
+  background-color: var(--white);
+  border: 2px solid var(--poke-red);
+  color: var(--poke-red);
+  transition: .25s;
+  font-size: 1.125rem;
+
+  box-shadow: 0 4px 12px -1px var(--drop-shadow);
+}
+
+.btn-ghost:hover {
+  background-color: var(--poke-red);
+  color: var(--white);
+
+  box-shadow: 0 2px 8px -2px var(--drop-shadow);
+}
 
 
 
@@ -142,13 +158,14 @@ nav {
 #nav-left p:not(#logo-nav) {
   position: relative;
 
-  font-size: 1.5rem;
+  color: var(--grey);
+  font-size: 1.35rem;
   font-weight: 500;
 
   cursor: pointer;
 }
 #nav-left p:hover:not(#logo-nav) {
-  color: var(--poke-red-dark);
+  color: var(--black);
 }
 
 #logo-nav {
@@ -159,7 +176,7 @@ nav {
   gap: 1rem;
 
   color: var(--poke-red);
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
@@ -173,15 +190,21 @@ nav {
   width: 1.75rem;
 
   background-image: url("../images/icon_logo.svg");
+
+  transition: .75s;
+}
+
+#logo-nav:hover #logo {
+  transform: rotate(-15deg);
 }
 
 #battle-nav {
   padding: .85rem 2rem 1rem;
   background-color: var(--poke-red);
-  border-radius: 16px;
+  border-radius: 8px;
 
   color: var(--white);
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -193,6 +216,32 @@ nav {
   background-color: var(--poke-red-dark);
 }
 
+
+
+
+/* -------------------------------------- */
+/* --------------- FOOTER --------------- */
+/* -------------------------------------- */
+
+
+footer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+
+  width: 100%;
+  padding: 1.5rem 2rem;
+  
+  box-shadow: 0 -4px 32px -8px var(--drop-shadow);
+}
+
+footer p, footer a {
+  color: var(--grey)
+}
+
+footer a:hover {
+  color: var(--black);
+}
 
 
 
@@ -227,4 +276,154 @@ header .header-content {
 header span {
   color: var(--poke-red);
   font-weight: 300;
+}
+
+
+
+/* CAROUSEL */
+
+#landing-page .carousel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+
+  width: 100%;
+  margin-bottom: 7rem;
+
+  text-align: center;
+}
+
+.carousel-container {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 2rem;
+
+  max-width: 58rem;
+  width: 100%;
+}
+
+.carousel-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+
+  min-height: 12rem;
+  width: 100%;
+  margin-top: 4rem;
+
+  background-color: var(--white);
+  border-radius: 16px;
+
+  box-shadow: 0 8px 16px -8px var(--drop-shadow);
+}
+
+.carousel-sprite {
+  position: absolute;
+  max-width: 14rem;
+  width: 80%;
+  left: 50%;
+  top: -5rem;
+  transform: translateX(-50%);
+
+  image-rendering: pixelated;
+  filter: drop-shadow(2px 8px 2px var(--drop-shadow));
+}
+
+.carousel-ID {
+  width: 100%;
+  overflow: hidden;
+
+  color: var(--light-grey);
+  font-size: 10rem;
+  text-align: center;
+  letter-spacing: -.5rem;
+  line-height: 9rem;
+}
+
+.carousel-name {
+  color: var(--poke-red);
+  font-size: 1.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .25rem;
+  padding: .25rem 1rem 1.5rem 1rem;
+}
+
+.carousel-controls {
+  position: absolute;
+  bottom: -2rem;
+
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.carousel-controls button {
+  width: 1rem;
+  height: 1rem;
+
+  background-color: var(--poke-red);
+  border: none;
+}
+
+#carousel-left {
+  background-image: url("../images/arrow-left.svg");
+}
+#carousel-right {
+  background-image: url("../images/arrow-right.svg");
+}
+
+
+/* INFORMATION GRID */
+
+#landing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+
+  max-width: 58rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.landing-grid-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 16px;
+
+  box-shadow: 0 8px 16px -8px var(--drop-shadow);
+}
+
+.team-split {
+  display: flex;
+  flex-direction: row;
+  gap: -4rem;
+}
+
+
+
+
+
+
+
+/* -------------------------------------- */
+/* ------------ POKEDEX PAGE ------------ */
+/* -------------------------------------- */
+
+#pokedex {
+  display: none;
 }

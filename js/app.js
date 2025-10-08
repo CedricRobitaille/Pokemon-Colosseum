@@ -27,4 +27,4 @@ const fetchData = async (params) => {
 
 
 
-fetchData("pokemon");
+fetchData("pokemon/22");
