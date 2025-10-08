@@ -255,11 +255,6 @@ footer a:hover {
 /* -------------------------------------- */
 
 
-#landing-page {
-  display: none;
-}
-
-
 header {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -518,8 +513,10 @@ search {
   margin-bottom: .75rem;
   padding-left: 3rem;
   border-radius: 8px;
+  text-transform: capitalize;
 
   box-shadow: 0 6px 12px -3px var(--drop-shadow);
+  cursor: pointer;
 }
 
 #filters p::before {
@@ -582,6 +579,7 @@ search {
 
   text-decoration: none;
   list-style: none;
+  text-transform: capitalize;
 
   transition: .25s;
   cursor: pointer;
@@ -718,3 +716,18 @@ search {
   border-radius: 6px;
 }
 
+
+
+
+
+
+
+
+
+
+
+/* IMPORANTS */
+
+.hidden {
+  display: none !important;
+}
