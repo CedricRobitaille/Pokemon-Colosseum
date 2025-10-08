@@ -435,6 +435,14 @@ header span {
 
 #pokedex {
   position: sticky;
+
+  
+}
+
+#pokemon-search {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 search {
@@ -652,16 +660,13 @@ search {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   gap: 2rem;
+  row-gap: 3rem;
 }
 
 .pokedex-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
 
-  min-height: 8rem;
+  min-height: 16rem;
   margin-top: 4rem;
   margin-bottom: 0rem;
 
@@ -681,12 +686,58 @@ search {
   box-shadow: 0 26px 12px -8px var(--drop-shadow);
 }
 
+.placeholder {
+  overflow: hidden;
+  position: relative;
+  background-color: var(--white);
+}
+
+.placeholder::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 120%;
+  height: 16rem;
+  width: 120%;
+  background: linear-gradient(105deg, rgba(255,255,255,0) 20%, var(--light-grey) 50%, rgba(255, 255, 255, 0) 80%);
+  animation: placeholder 2.5s linear infinite;
+}
+
+.placeholder::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 120%;
+  height: 16rem;
+  width: 120%;
+  background: linear-gradient(105deg, rgba(255, 255, 255, 0) 20%, var(--light-grey) 50%, rgba(255, 255, 255, 0) 80%);
+  animation: placeholder 2.5s 1.25s linear infinite;
+}
+
+@keyframes placeholder {
+  from {
+    left: -100%;
+  }
+  to {
+    left: 150%;
+  }
+}
+
+.pokedex-card .card-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
 .pokedex-card img {
   position: absolute;
   top: -5rem;
   width: 75%;
 
   image-rendering: pixelated;
+  filter: drop-shadow(3px 3px 3px var(--drop-shadow))
 }
 
 .pokedex-card .poke-id {
@@ -698,7 +749,8 @@ search {
 
 .pokedex-card h3 {
   font-size: 1.65rem;
-  color: var(--dark)
+  color: var(--dark);
+  text-transform: capitalize;
 }
 
 .pokedex-card .poke-type-container {
@@ -714,6 +766,8 @@ search {
   background-color: var(--light-grey);
 
   border-radius: 6px;
+
+  text-transform: capitalize;
 }
 
 

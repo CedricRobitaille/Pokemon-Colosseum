@@ -2,6 +2,7 @@ const rootUrl = "https://pokeapi.co/api/v2/"
 let offset = 0;
 let limit = 16;
 
+let isLoading = false;
 
 
 // --------------------------
@@ -10,40 +11,50 @@ let limit = 16;
 
 let typeFilters = [];
 
+/**
+ * Toggles the filter's root state from open to closed
+ * @param {object} event - The 'click' event
+ */
 const filterToggle = (event) => {
-  event.target.parentNode.classList.toggle("open");
+  event.target.parentNode.classList.toggle("open"); // Toggle the class on the target's parent.
 }
 
+
+/**
+ * Toggles between the dropdown states.
+ * If 'any' was clicked, turn all on/off.
+ * @param {object} event - The 'click' event
+ */
 const filterTypeToggle = (event) => {
-  const targetFilter = event.target;
-  const filterID = event.target.id;
-  if (filterID === "any") {
-    if (!targetFilter.classList.contains("selected")) {
-      const allTypes = document.querySelectorAll(".drop-down-element");
-      allTypes.forEach((type) => {
-        if (!typeFilters.includes(type.id)) {
-          if (type.id != "any") {
-            typeFilters.push(type.id);
+  const targetFilter = event.target;  // The targeted element
+  const filterID = event.target.id; // The targeted element's ID
+
+  if (filterID === "any") { // If the selected element is "any"
+    if (!targetFilter.classList.contains("selected")) { // 'Any' is not currently enabled.
+      const allTypes = document.querySelectorAll(".drop-down-element"); // Collects all filters in an array
+      allTypes.forEach((type) => {  // Iterate through every filter
+        if (!typeFilters.includes(type.id)) { // The current filter is NOT currently enabled.
+          if (type.id != "any") { // DO NOT ADD 'any' TO THE SELECTED FILTER ARRAY
+            typeFilters.push(type.id);  // Add's the current filter to the filter array (based on the ID)
           }
-          type.classList.add("selected");
+          type.classList.add("selected"); // Gives everyone the 'selected' class for styling
         }
       })
-    } else {
-      typeFilters = [];
-      const selecteds = document.querySelectorAll(".selected");
-      selecteds.forEach((item) => {
-        item.classList.remove("selected");
+    } else {  // Any is already on, meaning we need to disable all other filters.
+      typeFilters = []; // Resets the selected filters to empty.
+      const selecteds = document.querySelectorAll(".selected"); // All elements with the class "selected" placed in an araay
+      selecteds.forEach((item) => { // Iterate through every previously selected filter
+        item.classList.remove("selected");  // Remove their selected class/styling
       })
     }
-  } else if (typeFilters.includes(filterID)) {
-    typeFilters = typeFilters.filter(item => item !== filterID);
-  } else {
-    typeFilters.push(filterID);
+  } else if (typeFilters.includes(filterID)) {  // The user clicked a filter that is already 'selected'
+    typeFilters = typeFilters.filter(item => item !== filterID);  // Turns off the filter.
+  } else {  // The user clicked on a filter that is not on
+    typeFilters.push(filterID); // Add the filter to list!
   }
-  if (filterID != "any") {
+  if (filterID != "any") {  // Toggle all filters on/off (aside from any since that's done before)
     targetFilter.classList.toggle("selected")
   }
-  console.log(typeFilters);
 }
 
 
@@ -60,12 +71,11 @@ const filterTypeToggle = (event) => {
  *  @param {object} data - Individual pokemon object data
  */
 const generatePokedexCard = async (pokemon) => {
-  pokemon = await pokemon;
+  pokemon = await pokemon; // Ensure data has loaded before looking creating
 
   // Create Card Element
   const card = document.createElement("div");
-  card.id = pokemon.id;
-  card.classList.add("pokedex-card");
+  card.classList.add("card-container");
 
   // Create Pokemon Sprite -> Append to Card
   const sprite = document.createElement("img");
@@ -74,7 +84,7 @@ const generatePokedexCard = async (pokemon) => {
 
   // Create PokeID Element -> Append to Card
   const pokeID = document.createElement("p");
-  pokeID.innerText = pokemon.id;
+  pokeID.innerText = `N°${pokemon.id}`;
   pokeID.classList.add("poke-id")
   card.appendChild(pokeID);
 
@@ -87,16 +97,14 @@ const generatePokedexCard = async (pokemon) => {
   // Create Type Container -> Create types based on array -> Append types to Container -> Append to Card
   const typeContainer = document.createElement("div");
   typeContainer.classList.add("poke-type-container");
+  card.appendChild(typeContainer)
 
-  pokemon.types.forEach(async (type) => {
-    console.log(type.type.name)
-    const pokeType = document.createElement("p")
+  pokemon.types.forEach(async (type) => { // Creates a new type element for each type the pokemon has.
+    const pokeType = document.createElement("p");
     pokeType.innerText = type.type.name;
     pokeType.classList.add(type.type.name);
     typeContainer.appendChild(pokeType);
   })
-
-  card.appendChild(typeContainer)
 
   // All card elements have been made. Return the card variable.
   return card;
@@ -111,33 +119,33 @@ const generatePokedexCard = async (pokemon) => {
  * @param {object} data - Pokemon data (/pokemon/ or /pokemon/#/)
  */
 const generatePokedex = async (data) => {
+  isLoading = true; // No more large calls can be requested until we're done loading.
   data = await data; // Since fetchData is async, the data we're using needs to be logged asyncly
   console.log("Generating Pokedex from:",data)
 
-  // const cardArray = [];
-  // let currentCard = 0;
-  // let maxCards = data.results.length-1;
+  data.results.forEach((pokemon) => { // Create placeholder cards for each pokemon being sourced.
+    const pokemonID = pokemon.url.replace("https://pokeapi.co/api/v2/pokemon/", "").replace("/", ""); // Source the pokemon's ID from (/pokemon/)
+    const pokedex = document.getElementById("pokedex-pokemon"); // Get the pokedex parent container
+    
+    const card = document.createElement("div"); // Create the placeholder card element
+    card.id = pokemonID;  // Assign the card a unique ID
+    card.classList.add("pokedex-card"); // Give the card styling
+    card.classList.add("placeholder");  // Give class 'Placeholder' for styling.
+    pokedex.appendChild(card) // Add the placeholder to the pokedex container
+  });
 
-  // Get the data for each individual Card
   data.results.forEach(async (pokemon) => {
     const pokeID = pokemon.url.replace("https://pokeapi.co/api/v2/pokemon/", "").replace("/", ""); // FROM THE URL, Remove all the junk, leave the pokemon ID
-    const pokeData = await fetchData(`pokemon/${pokeID}`)
+    const pokeData = await fetchData(`pokemon/${pokeID}`) // Fetch the data specific to the current pokemon
     const card = await generatePokedexCard(pokeData) // Generate a card based on the individual pokemon's data
 
-    const pokedex = document.getElementById("pokedex-pokemon");
-    pokedex.appendChild(card)
+    const cardContainer = document.getElementById(pokeID) // Get the placeholder container with the matching ID
+    cardContainer.classList.remove("placeholder");  // Remove the placeholder class since the card data has loaded
+    cardContainer.appendChild(card) // Place the contents.
+
+    offset++; // A card has been made. Increase the search offset by 1
   })
-
-  // const placeCard = async () => {
-  //   for (let cardIndex = currentCard; cardIndex < cardArray.length; cardIndex++) {
-  //     if (cardArray[cardIndex][0] =)
-  //   }
-  // }
-
-
-
-  
-  
+  isLoading = false; // All cards requested have been loaded. We can now allow more calls to be called.
 }
 
 
@@ -153,6 +161,7 @@ const generatePokedex = async (data) => {
 
 
 const fetchData = async (params) => {
+  isLoading = true;
   try {
     const response = await fetch(rootUrl + params + `?offset=${offset}&limit=${limit}`);
     if (!response.ok) { // TRUE = Status code within 200-299 | FALSE = Status code outside 200-299 (ie: 404 -> Not Found)
@@ -185,7 +194,28 @@ const loadLandingPage = () => {
 
 }
 
-
+/**
+ * Loads the pokedex Page based on the following structure skeleton stucture:
+ *  <div id="pokemon-search">
+      <search>
+        <div>
+          <input type="search">
+          <button></button>
+        </div>
+        <div id="filters">
+          <div id="filter-container"> // Creates many fitler containers based on what stats need to be filtered
+            <p id="filter-type"></p>
+            <ul class="filter-drop-down">
+              <li id="filter"></li> // Creates many filters based on the pokemon types array
+            </ul>
+          </div>
+        </div>
+      </search>
+      <div id="pokedex-pokemon">
+        // POKEMON CARDS PLACED WITHIN
+      </div>
+    </div>
+ */
 const loadPokedexPage = () => {
   const pokedex = document.getElementById("pokedex");
 
@@ -350,6 +380,24 @@ const navClick = (target) => {
 
 const nav = document.querySelector("nav");
 nav.addEventListener("click", (event) => { navClick(event.target) });
+
+
+
+window.addEventListener("scroll", () => {
+  const pokedexNav = document.getElementById("pokedex-nav")
+  if (pokedexNav.classList.contains("current-page")) {
+    if (!isLoading) {
+      if (window.scrollY + window.innerHeight >= document.body.scrollHeight - 55) {
+        isLoading = true;
+        generatePokedex(fetchData("pokemon"));
+      }
+    }
+  }
+});
+
+
+
+
 
 
 
