@@ -438,8 +438,12 @@ header span {
 
 /* SEARCH BAR */
 
-search {
+#pokedex {
   position: sticky;
+}
+
+search {
+  position: static;
   top: 2rem;
   display: flex;
   flex-direction: column;
@@ -553,6 +557,7 @@ search {
 
 #filters ul {
   position: absolute;
+  z-index: 1000;
   display: none;
   border-radius: 8px;
   width: 14rem;
@@ -660,12 +665,22 @@ search {
 
   min-height: 8rem;
   margin-top: 4rem;
+  margin-bottom: 0rem;
 
   background-color: #fff;
   padding: 2rem;
   border-radius: 22px;
 
   box-shadow: 0 8px 22px -4px var(--drop-shadow);
+  cursor: pointer;
+  transition: .5s;
+}
+
+.pokedex-card:hover {
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+
+  box-shadow: 0 26px 12px -8px var(--drop-shadow);
 }
 
 .pokedex-card img {
