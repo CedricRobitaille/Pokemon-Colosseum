@@ -90,14 +90,66 @@
 
     <section id="pokedex">
       <div>
-        <search>
-          <form>
-            <input id="search-bar" type="search">
-          </form>
-        </search>
-        <div id="pokedex-pokemon">
 
+        <search>
+          <div id="search-bar">
+            <input id="search-input" type="search" placeholder="Search for a Pokemon / ID">
+            <button id="search-button"></button>
+          </div>
+          <div id="filters">
+            
+            <div id="type-container">
+              <p id="type-filter">Types</p>
+              <ul class="filter-drop-down">
+                <li id="any" class="type">Any</li>
+                <li id="normal" class="type">Fire</li>
+                <li id="fire" class="type">Fire</li>
+                <li id="water" class="type">Water</li>
+                <li id="grass" class="type">Grass</li>
+                <li id="flying" class="type">Flying</li>
+                <li id="fighting" class="type">Fighting</li>
+                <li id="poison" class="type">Poison</li>
+                <li id="electric" class="type">Electric</li>
+                <li id="ground" class="type">Ground</li>
+                <li id="rock" class="type">Rock</li>
+                <li id="psychic" class="type">Psychic</li>
+                <li id="ice" class="type">Ice</li>
+                <li id="bug" class="type">Bug</li>
+                <li id="ghost" class="type">Ghost</li>
+                <li id="steel" class="type">Steel</li>
+                <li id="dragon" class="type">Dragon</li>
+                <li id="dark" class="type">Dark</li>
+                <li id="fairy" class="type">Fairy</li>
+              </ul>
+            </div>
+
+          </div>
+        </search>
+
+        <div id="pokedex-pokemon">
+          <div class="pokedex-card">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/129.png" alt="">
+            <p class="poke-id">129</p>
+            <h3 class="poke-name">Magikarp</h3>
+            <div class="poke-type-container">
+              <p>Water</p>
+              <p>Fire</p>
+            </div>
+          </div>
+          <div class="pokedex-card">
+          
+          </div>
+          <div class="pokedex-card">
+          
+          </div>
+          <div class="pokedex-card">
+          
+          </div>
+          <div class="pokedex-card">
+          
+          </div>
         </div>
+
       </div>
       <article id="pokemon-information"></article>
     </section>
