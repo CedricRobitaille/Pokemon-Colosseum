@@ -12,22 +12,23 @@ const party = {
   maxSize: 6,
   currentSize: 0,
   async addToParty(pokemon) {
-    console.log("Adding:", pokemon);
+    console.log("Adding to party:", pokemon);
 
     if (this.currentSize < this.maxSize) {
-      this.currentSize++;
       this.currentParty.push({ name: pokemon.name });
 
       pokedexPartyAdd(pokemon)
-      console.log(this.currentParty)
+
+      this.currentSize++;
     }
   },
   /**
    * Removes a pokemon from the current party. This selection is based on the name of the pokemon.
-   * @param {string} pokemon - The name of the pokemon
+   * @param {string} pokemon - The array index for the party
    */
-  removeFromParty(pokemon) {
-    pokedexPartyAdd(pokemon)
+  removeFromParty(index) {
+    pokedexPartyRemove(index); // Removes the element from the 
+    this.currentParty.splice(index-1, 1) // Removes the element from the array.
   },
 }
 
@@ -92,7 +93,6 @@ const filterTypeToggle = (event) => {
 }
 
 const togglePartyModal = () => {
-  console.log("yes")
   const partyModalContainer = document.getElementById("party-modal");
   partyModalContainer.classList.toggle("party-modal-closed");
 }
@@ -102,6 +102,20 @@ const togglePartyModal = () => {
 // ------- POKEDEX CARD GENERATION -------
 // ---------------------------------------
 
+function pokedexPartyRemove(index) {
+  const partyContainer = document.getElementById("party-container");
+  const partyElement = document.getElementById(`party${index}`)
+  if (partyElement) {
+    partyContainer.removeChild(partyElement);
+  }
+
+  const partyElementCollection = document.querySelector(".party-element")
+  if (!partyElementCollection) { // No more partyelements were found.
+    const partyModal = document.getElementById("party-modal")
+    partyModal.removeChild(partyContainer);
+    togglePartyModal();
+  }
+}
 
 async function pokedexPartyAdd(pokemon) {
   pokemon = await pokemon;
@@ -115,11 +129,10 @@ async function pokedexPartyAdd(pokemon) {
   }
 
   let partyContainer = document.getElementById("party-container");
-  if (!partyContainer) {
+  if (!partyContainer) { // A party container doesn't exist yet, so make one!
     partyContainer = document.createElement("div");
     partyContainer.id = "party-container";
     partyModal.appendChild(partyContainer);
-    console.log(partyContainer)
   }
 
   const partyElement = document.createElement("div");
@@ -139,7 +152,7 @@ async function pokedexPartyAdd(pokemon) {
   const partyRemoveButton = document.createElement("button");
   partyRemoveButton.classList.add("party-remove");
   partyRemoveButton.addEventListener("click", () => {
-    pokedexPartyRemove(`party${partySize + 1}`);
+    party.removeFromParty(partySize);
   });
   partyElement.appendChild(partyRemoveButton);
 }
@@ -345,7 +358,6 @@ const generatePokedexModal = async (pokemon) => {
     const evolutionStep = async (evolution) => {
       evolution = await evolution;
       const imgSrc = await fetchData(`pokemon/${evolution.species.name}`)
-      console.log(evolution)
 
       const evolutionImg = document.createElement("img");
       evolutionImg.setAttribute("src", imgSrc.sprites.front_default)
@@ -618,8 +630,6 @@ const loadLandingPage = async () => {
   carouselCardCount.forEach(async () => { // Creates 3 Carousel Cards
     const randomPokemon = parseInt(Math.random() * 1025); // Gets a random Pokemon Index 1-1025
     const pokemon = await fetchData(`pokemon/${randomPokemon}`)
-
-    console.log(pokemon)
 
     const carouselCard = document.createElement("div");
     carouselCard.classList.add("carousel-card");
