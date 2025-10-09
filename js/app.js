@@ -77,6 +77,7 @@ const resetPokedex = () => {
   }
 }
 
+
 /**
  * Removes the modal from the Pokedex screen
  */
@@ -88,6 +89,7 @@ const removeModal = () => {
   }
 
 }
+
 
 /**
  * Generates a modal on the pokedex page filled with a detailed overview of pokemon traits.
@@ -157,7 +159,7 @@ const generatePokedexModal = async (pokemon) => {
     // Intro Section
 
     const modalIntro = document.createElement("div");
-    modalIntro.id - "modal-intro";
+    modalIntro.id = "modal-intro";
     pokedexModal.appendChild(modalIntro);
 
     const pokemonImg = document.createElement("img");
@@ -215,7 +217,7 @@ const generatePokedexModal = async (pokemon) => {
 
       const statBar = document.createElement("div");
       statBar.classList.add("stat-bar");
-      statBar.style.width = `${Math.min((750 / parseInt(stat.base_stat)), 100)}%` // sets element width to a percentage of the estimated max stat possible, capped at 100%
+      statBar.style.width = `${Math.min((parseInt(stat.base_stat) / 350 * 100), 100)}%` // sets element width to a percentage of the estimated max stat possible, capped at 100%
       statBarContainer.appendChild(statBar);
     });
 
@@ -295,7 +297,6 @@ const generatePokedexModal = async (pokemon) => {
     removeModal();
   }
 }
-
 
 
 /**
