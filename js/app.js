@@ -1,8 +1,41 @@
 const rootUrl = "https://pokeapi.co/api/v2/"
 let offset = 0;
-let limit = 16;
-
+let limit = 15;
 let isLoading = false;
+
+
+
+
+
+const party = {
+  currentParty: [],
+  maxSize: 6,
+  currentSize: 0,
+  async addToParty(pokemon) {
+    console.log("Adding:", pokemon);
+
+    if (this.currentSize < this.maxSize) {
+      this.currentSize++;
+      this.currentParty.push({ name: pokemon.name });
+
+      pokedexPartyAdd(pokemon)
+      console.log(this.currentParty)
+    }
+  },
+  /**
+   * Removes a pokemon from the current party. This selection is based on the name of the pokemon.
+   * @param {string} pokemon - The name of the pokemon
+   */
+  removeFromParty(pokemon) {
+    pokedexPartyAdd(pokemon)
+  },
+}
+
+
+
+
+
+
 
 
 
@@ -58,11 +91,59 @@ const filterTypeToggle = (event) => {
   }
 }
 
+const togglePartyModal = () => {
+  console.log("yes")
+  const partyModalContainer = document.getElementById("party-modal");
+  partyModalContainer.classList.toggle("party-modal-closed");
+}
 
 
 // ---------------------------------------
 // ------- POKEDEX CARD GENERATION -------
 // ---------------------------------------
+
+
+async function pokedexPartyAdd(pokemon) {
+  pokemon = await pokemon;
+  console.log(pokemon)
+  const partyModal = document.getElementById("party-modal");
+  const partySize = party.currentSize;
+
+  const partyModalState = document.querySelector(".party-modal-closed")
+  if (partyModalState) {
+    togglePartyModal();
+  }
+
+  let partyContainer = document.getElementById("party-container");
+  if (!partyContainer) {
+    partyContainer = document.createElement("div");
+    partyContainer.id = "party-container";
+    partyModal.appendChild(partyContainer);
+    console.log(partyContainer)
+  }
+
+  const partyElement = document.createElement("div");
+  partyElement.classList.add("party-element");
+  partyElement.id = `party${partySize}`
+  partyContainer.appendChild(partyElement);
+
+  const partyImg = document.createElement("img");
+  partyImg.setAttribute("src", pokemon.sprites.front_default);
+  partyElement.appendChild(partyImg);
+
+  const partyName = document.createElement("p");
+  partyName.innerText = pokemon.name;
+  partyName.id = `partyName${partySize}`
+  partyElement.appendChild(partyName);
+
+  const partyRemoveButton = document.createElement("button");
+  partyRemoveButton.classList.add("party-remove");
+  partyRemoveButton.addEventListener("click", () => {
+    pokedexPartyRemove(`party${partySize + 1}`);
+  });
+  partyElement.appendChild(partyRemoveButton);
+}
+
 
 /**
  * Clears the pokedex board of all pokemon. Resets the count tracker
@@ -280,11 +361,11 @@ const generatePokedexModal = async (pokemon) => {
     partyButton.classList.add("btn", "btn-ghost");
     partyButton.innerText = "Add to Team";
     partyButton.addEventListener("click", () => {
-      addToParty(pokemon.id);
+      party.addToParty(pokemon);
     });
     pokedexModal.appendChild(partyButton);
+    isLoading = false;
   }
-
 
   // Checks a) if a previous modal exists
   // Then b) if that modal is belonging to the pokemon selected (remove it, don't regenerate)
@@ -296,6 +377,7 @@ const generatePokedexModal = async (pokemon) => {
   } else {
     removeModal();
   }
+  isLoading = false;
 }
 
 
@@ -725,7 +807,23 @@ const loadPokedexPage = () => {
     const pokedexOutput = document.createElement("div");
     pokedexOutput.id = "pokedex-pokemon";
     pokeSearch.appendChild(pokedexOutput);
+  })
 
+  // Create the Party Modal
+
+  const partyModal = document.createElement("section");
+  partyModal.id = "party-modal";
+  partyModal.classList.add("party-modal-closed");
+  pokedex.appendChild(partyModal)
+
+  const partyModalTitle = document.createElement("h2");
+  partyModalTitle.id = "party-modal-toggle";
+  partyModalTitle.innerText = "Your Party";
+  partyModalTitle.addEventListener("click", () => { togglePartyModal() });
+  partyModal.appendChild(partyModalTitle);
+
+  party.currentParty.forEach(async (partyPokemon) => { // party.currentParty is an array
+    pokedexPartyAdd(await fetchData(`pokemon/${partyPokemon.name}`))  // Get the pokemon data from the array's object's key: "name"
   })
 
   generatePokedex(fetchData("pokemon"));
@@ -825,6 +923,7 @@ nav.addEventListener("click", (event) => { navClick(event.target) });
 
 
 
+
 // ----------------------------------------
 // ------------ LAUNCH ACTIONS ------------
 // ----------------------------------------
@@ -834,7 +933,7 @@ window.addEventListener("scroll", () => {
   const pokedexNav = document.getElementById("pokedex-nav")
   if (pokedexNav.classList.contains("current-page")) {
     if (!isLoading && !timeDelay) {
-      if (window.scrollY + window.innerHeight >= document.body.scrollHeight - 55) {
+      if (window.scrollY + window.innerHeight >= document.body.scrollHeight - 100) {
         isLoading = true;
         timeDelay = true;
         generatePokedex(fetchData("pokemon"));
