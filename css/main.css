@@ -795,22 +795,37 @@ search {
 
 .pokemon-information {
   position: sticky;
-  top: 9rem;
+  top: 5rem;
+  margin-top: 1rem;
 
+  width: 100%;
+  max-width: 26rem;
+  height: fit-content;
+  
+  background-color: var(--white);
+  
+  border-radius: 24px;
+  box-shadow: 0px 8px 24px -4px var(--drop-shadow);
+}
+
+.pokemon-information-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2rem;
 
-  width: 100%;
-  max-width: 26rem;
+  overflow-y: scroll;
   height: fit-content;
+  max-height: calc(100vh - 24rem);
 
-  background-color: var(--white);
   padding: 2rem;
-  margin-top: 6rem;
-  border-radius: 24px;
-  box-shadow: 0px 8px 24px -4px var(--drop-shadow);
+  margin-top: 13rem;
+
+  scrollbar-color: #c2d0da transparent;
+}
+
+.pokemon-information-container::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 #modal-intro {
@@ -819,15 +834,14 @@ search {
   align-items: center;
 
   position: relative;
-
-  margin-top: 10rem;
 }
 
-#modal-intro img {
+#pokedex-information-img {
   position: absolute;
-  top: -20rem;
+  top: -5rem;
+  left: calc(25%/2);
 
-  width: 75rem;
+  width: 75%;
   max-width: 20rem;
   aspect-ratio: 1/1;
 
@@ -964,7 +978,9 @@ search {
 .evolutions-container img {
   position: relative;
   width: 100%;
+  max-width: 8rem;
   aspect-ratio: 1/1;
+  image-rendering: pixelated;
 }
 
 .evolutions-container img::after {
@@ -1009,6 +1025,11 @@ search {
 #party-modal.party-modal-closed {
   animation: party-bounce 3s infinite alternate ease-in-out;
 }
+
+#party-modal.party-modal-closed:hover {
+  background-color: var(--poke-red-dark);
+}
+
 
 @keyframes party-bounce {
   from {
@@ -1065,7 +1086,7 @@ search {
   75% {
     top: 1.25rem;
   } 
-  100% {
+  101% {
     top: 1.5rem;
   }
 }
@@ -1083,7 +1104,7 @@ search {
     top: 1.5rem;
   }
 
-  100% {
+  101% {
     top: 1.75rem;
   }
 }
@@ -1100,6 +1121,7 @@ search {
   background-color: var(--bg);
   border-radius: 2.125rem;
   margin: 0rem .5rem .5rem;
+  cursor: default;
 }
 
 .party-element {
@@ -1141,6 +1163,9 @@ search {
   background-image: url("../images/icon_close.svg");
 }
 
+.party-element button:hover {
+  cursor: pointer;
+}
 
 /* -------------------------------------- */
 /* ------------  ------------ */

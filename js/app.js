@@ -12,14 +12,14 @@ const party = {
   maxSize: 6,
   currentSize: 0,
   async addToParty(pokemon) {
-    console.log("Adding to party:", pokemon);
-
     if (this.currentSize < this.maxSize) {
       this.currentParty.push({ name: pokemon.name });
 
       pokedexPartyAdd(pokemon)
 
       this.currentSize++;
+    } else {
+      // PARTY IS FULL WARN THE USER
     }
   },
   /**
@@ -28,7 +28,14 @@ const party = {
    */
   removeFromParty(index) {
     pokedexPartyRemove(index); // Removes the element from the 
-    this.currentParty.splice(index-1, 1) // Removes the element from the array.
+    if (this.currentParty.length > 1) { // Doesn't like removing the last index
+      this.currentParty.splice(index - 1, 1) // Removes the element from the array.
+    } else {
+      this.currentParty = [];
+    }
+    
+    console.log(this.currentParty)
+    this.currentSize--;
   },
 }
 
@@ -116,6 +123,7 @@ function pokedexPartyRemove(index) {
     togglePartyModal();
   }
 }
+
 
 async function pokedexPartyAdd(pokemon) {
   pokemon = await pokemon;
@@ -245,20 +253,25 @@ const generatePokedexModal = async (pokemon) => {
 
     const pokedex = document.getElementById("pokedex");
 
+    const pokedexModalContainer = document.createElement("div");
+    pokedexModalContainer.classList.add("pokemon-information")
+    pokedexModalContainer.id = pokemon.name;
+    pokedex.appendChild(pokedexModalContainer);
+
+    const pokemonImg = document.createElement("img");
+    pokemonImg.setAttribute("src", pokemon.sprites.front_default);
+    pokemonImg.id = "pokedex-information-img"
+    pokedexModalContainer.appendChild(pokemonImg)
+
     const pokedexModal = document.createElement("article");
-    pokedexModal.classList.add("pokemon-information");
-    pokedexModal.id = pokemon.name;
-    pokedex.appendChild(pokedexModal);
+    pokedexModal.classList.add("pokemon-information-container");
+    pokedexModalContainer.appendChild(pokedexModal);
 
     // Intro Section
 
     const modalIntro = document.createElement("div");
     modalIntro.id = "modal-intro";
     pokedexModal.appendChild(modalIntro);
-
-    const pokemonImg = document.createElement("img");
-    pokemonImg.setAttribute("src", pokemon.sprites.front_default);
-    modalIntro.appendChild(pokemonImg)
 
     const pokemonID = document.createElement("p");
     pokemonID.classList.add("modal-id");
@@ -311,7 +324,7 @@ const generatePokedexModal = async (pokemon) => {
 
       const statBar = document.createElement("div");
       statBar.classList.add("stat-bar");
-      statBar.style.width = `${Math.min((parseInt(stat.base_stat) / 350 * 100), 100)}%` // sets element width to a percentage of the estimated max stat possible, capped at 100%
+      statBar.style.width = `${Math.min((parseInt(stat.base_stat) / 250 * 100), 100)}%` // sets element width to a percentage of the estimated max stat possible, capped at 100%
       statBarContainer.appendChild(statBar);
     });
 
