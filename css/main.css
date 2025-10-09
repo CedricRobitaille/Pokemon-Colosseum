@@ -39,7 +39,7 @@ body {
 
 main {
   padding: 2rem;
-  max-width: 82rem;
+  max-width: 92rem;
   margin: 0 auto;
 }
 
@@ -450,6 +450,10 @@ header span {
 #pokedex {
   position: sticky;
 
+  display: flex;
+  flex-direction: row;
+  gap: 3rem;
+  width: 100%;
   
 }
 
@@ -457,10 +461,11 @@ header span {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 
 search {
-  position: static;
+  position: relative;
   top: 2rem;
   display: flex;
   flex-direction: column;
@@ -743,6 +748,7 @@ search {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
 }
 
@@ -787,6 +793,22 @@ search {
 
 
 
+.pokemon-information {
+  position: sticky;
+  top: 6rem;
+
+  width: 100%;
+  max-width: 26rem;
+  max-height: calc(100vh - 12rem);;
+
+  background-color: var(--white);
+  padding: 2rem;
+  margin-top: 2rem;
+  border-radius: 24px;
+
+  overflow-y: auto;
+  box-shadow: 0px 8px 24px -4px var(--drop-shadow);
+}
 
 
 

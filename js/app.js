@@ -5,9 +5,11 @@ let limit = 16;
 let isLoading = false;
 
 
-// --------------------------
-// Filter Containers
-// --------------------------
+
+
+// ----------------------------------------
+// ----------- FILTER CONTAINER -----------
+// ----------------------------------------
 
 let typeFilters = [];
 
@@ -58,13 +60,13 @@ const filterTypeToggle = (event) => {
 
 
 
-
-
-
 // ---------------------------------------
 // ------- POKEDEX CARD GENERATION -------
 // ---------------------------------------
 
+/**
+ * Clears the pokedex board of all pokemon. Resets the count tracker
+ */
 const resetPokedex = () => {
   offset = 0;
   try {
@@ -76,6 +78,227 @@ const resetPokedex = () => {
 }
 
 /**
+ * Removes the modal from the Pokedex screen
+ */
+const removeModal = () => {
+  const pokedex = document.getElementById("pokedex");
+  const pokedexModal = document.querySelector(".pokemon-information");
+  if (pokedexModal) {
+    pokedex.removeChild(pokedexModal)
+  }
+
+}
+
+/**
+ * Generates a modal on the pokedex page filled with a detailed overview of pokemon traits.
+ * @param {object} pokemon - Complete pokemon data from /pokemon/#/
+ */
+const generatePokedexModal = async (pokemon) => {
+  pokemon = await pokemon;
+
+  /**
+   * Creates the modal object once all checks have been approved
+   * Generates the modal under the following structure:
+   * <article id="pokemon-Name" class="pokemon-information">
+        <div class="modal-intro">
+          <img src="" alt="">
+          <p class="modal-id"></p>
+          <h2 class="modal-name"></h2>
+          <p class="flavor-text"></p>
+        </div>
+
+        <div id="modal-stats">
+          <h3></h3>
+          <div class="modal-stats-container">
+            <div class="horizontal-stat-container">
+              <p class="stat-name"></p>
+              <p class="stat-value"></p>
+              <div class="stat-bar-container">
+                <div class="stat-bar"></div>
+              </div>
+            </div>
+            <div class="poke-type-container">
+              <p class="typeID">water</p>
+            </div>
+            <div class="abilities-container">
+              <p class="abilityID">Swift Swim</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="modal-evolutions">
+          <h3></h3>
+          <div class="evolutions-container">
+            <img src="" alt="">
+          </div>
+        </div>
+        <button class="btn btn-ghost"></button>
+      </article>
+   * @param {object} pokemon - Complete pokemon data from /pokemon/#/
+   */
+  const placePokedexInformation = async (pokemon) => {
+    pokemon = await pokemon;
+    species = await fetchData(`pokemon-species/${pokemon.id}`);
+    evolutions = await fetchData(species.evolution_chain.url.replace("https://pokeapi.co/api/v2/", ""))
+
+    console.log("MODAL INFO:")
+    console.log(pokemon)
+    console.log(species)
+    console.log(evolutions)
+    removeModal()
+
+    const pokedex = document.getElementById("pokedex");
+
+    const pokedexModal = document.createElement("article");
+    pokedexModal.classList.add("pokemon-information");
+    pokedexModal.id = pokemon.name;
+    pokedex.appendChild(pokedexModal);
+
+    // Intro Section
+
+    const modalIntro = document.createElement("div");
+    modalIntro.id - "modal-intro";
+    pokedexModal.appendChild(modalIntro);
+
+    const pokemonImg = document.createElement("img");
+    pokemonImg.setAttribute("src", pokemon.sprites.front_default);
+    modalIntro.appendChild(pokemonImg)
+
+    const pokemonID = document.createElement("p");
+    pokemonID.classList.add("modal-id");
+    pokemonID.innerText = `N°${pokemon.id}`;
+    modalIntro.appendChild(pokemonID);
+
+    const pokemonName = document.createElement("h2");
+    pokemonName.classList.add("modal-name");
+    pokemonName.innerText = pokemon.name;
+    modalIntro.appendChild(pokemonName);
+
+    const flavorText = document.createElement("p");
+    const flavorTextContent = species.flavor_text_entries[0].flavor_text.replace(/\n/g, " ").replace(/\f/g, " ");
+    flavorText.innerText = flavorTextContent;
+    flavorText.classList.add("flavor-text");
+    modalIntro.appendChild(flavorText);
+
+    // Modal Stats
+
+    const modalStats = document.createElement("div");
+    modalStats.id = "modal-stats";
+    pokedexModal.appendChild(modalStats);
+
+    const statsText = document.createElement("h3");
+    statsText.innerText = "Stats"
+    modalStats.appendChild(statsText)
+
+    const statsContainer = document.createElement("div");
+    statsContainer.classList.add("modal-stats-container");
+    modalStats.appendChild(statsContainer);
+
+    pokemon.stats.forEach((stat) => { // In the pokemon obj, loop through each stat in the `stats key`.
+      const uniqueStatContainer = document.createElement("div");
+      uniqueStatContainer.classList.add("horizontal-stat-container");
+      statsContainer.appendChild(uniqueStatContainer);
+
+      const statName = document.createElement("p");
+      statName.classList.add("stat-name");
+      statName.innerText = stat.stat.name;
+      uniqueStatContainer.appendChild(statName);
+
+      const statValue = document.createElement("p");
+      statValue.classList.add("stat-value");
+      statValue.innerText = stat.base_stat;
+      uniqueStatContainer.appendChild(statValue);
+
+      const statBarContainer = document.createElement("div");
+      statBarContainer.classList.add("stat-bar-container");
+      uniqueStatContainer.appendChild(statBarContainer);
+
+      const statBar = document.createElement("div");
+      statBar.classList.add("stat-bar");
+      statBar.style.width = `${Math.min((750 / parseInt(stat.base_stat)), 100)}%` // sets element width to a percentage of the estimated max stat possible, capped at 100%
+      statBarContainer.appendChild(statBar);
+    });
+
+    const typeContainer = document.createElement("div");
+    typeContainer.classList.add("poke-type-container");
+    modalStats.appendChild(typeContainer);
+
+    pokemon.types.forEach((type) => { // Runs through each pokemon type
+      const pokemonType = document.createElement("p");
+      pokemonType.classList.add(type.type.name);
+      pokemonType.innerText = type.type.name
+      typeContainer.appendChild(pokemonType);
+    })
+
+    const abilityContainer = document.createElement("div");
+    abilityContainer.classList.add("abilities-container")
+    modalStats.appendChild(abilityContainer)
+
+    pokemon.abilities.forEach((ability) => { // Runs through each pokemon ability
+      const pokemonAbility = document.createElement("p");
+      pokemonAbility.classList.add("ability-text");
+      pokemonAbility.innerText = ability.ability.name
+      abilityContainer.appendChild(pokemonAbility);
+    });
+
+    // Evolutions
+
+    const modalEvolutions = document.createElement("div");
+    modalEvolutions.classList.add("modal-evolutions");
+    pokedexModal.appendChild(modalEvolutions);
+
+    const evolutionText = document.createElement("h3");
+    evolutionText.innerText = "Evolutions"
+    modalEvolutions.appendChild(evolutionText);
+
+    const evolutionsContainer = document.createElement("div");
+    evolutionsContainer.classList.add("evolutions-container")
+    modalEvolutions.appendChild(evolutionsContainer);
+
+    /**
+     *  Recursively tunnels through the evolution tree to output every step in the tree
+     * @param {object} evolutions - The current stage of the evolution tree
+     */
+    const evolutionStep = async (evolution) => {
+      evolution = await evolution;
+      const imgSrc = await fetchData(`pokemon/${evolution.species.name}`)
+      console.log(evolution)
+
+      const evolutionImg = document.createElement("img");
+      evolutionImg.setAttribute("src", imgSrc.sprites.front_default)
+      evolutionsContainer.appendChild(evolutionImg);
+
+      if (evolution.evolves_to.length > 0) { // Selected evolution tree spot does evolve again
+        evolutionStep(evolution.evolves_to[0]);
+      }
+    }
+    evolutionStep(evolutions.chain);
+
+    const partyButton = document.createElement("button");
+    partyButton.classList.add("btn", "btn-ghost");
+    partyButton.innerText = "Add to Team";
+    partyButton.addEventListener("click", () => {
+      addToParty(pokemon.id);
+    });
+    pokedexModal.appendChild(partyButton);
+  }
+
+
+  // Checks a) if a previous modal exists
+  // Then b) if that modal is belonging to the pokemon selected (remove it, don't regenerate)
+  const previousModal = document.querySelector(".pokemon-information");
+  if (!previousModal) {
+    placePokedexInformation(pokemon)
+  } else if (previousModal.id != pokemon.name) {
+    placePokedexInformation(pokemon)
+  } else {
+    removeModal();
+  }
+}
+
+
+
+/**
  * Generates a card in the pokedex, based on a fetched pokemon.
  *  @param {object} data - Individual pokemon object data
  */
@@ -85,10 +308,13 @@ const generatePokedexCard = async (pokemon) => {
   // Create Card Element
   const card = document.createElement("div");
   card.classList.add("card-container");
+  card.addEventListener("click", () => {
+    generatePokedexModal(pokemon)
+  });
 
   // Create Pokemon Sprite -> Append to Card
   const sprite = document.createElement("img");
-  sprite.setAttribute("src", pokemon.sprites.front_default);
+  await sprite.setAttribute("src", pokemon.sprites.front_default);
   card.appendChild(sprite);
 
   // Create PokeID Element -> Append to Card
@@ -119,13 +345,14 @@ const generatePokedexCard = async (pokemon) => {
   return card;
 }
 
+
 /**
  * Creates a placeholder card in the dom.
  * ID value is added from the pokemon provided.
  * @param {object} data - Object containing pokemon data (either from /pokemon/ or /pokemon/#/)
  */
 const generatePlaceholderCard = (data) => {
-  let pokemonID = 0; 
+  let pokemonID = 0;
 
   if ("id" in data) {
     pokemonID = data.id;
@@ -153,7 +380,7 @@ const generatePlaceholderCard = (data) => {
 const generatePokedex = async (data) => {
   isLoading = true; // No more large calls can be requested until we're done loading.
   data = await data; // Since fetchData is async, the data we're using needs to be logged asyncly
-  console.log("Generating Pokedex from:",data)
+  console.log("Generating Pokedex from:", data)
 
   if ("id" in data) { // The data provided contains a direct ID (comes from /pokemon/#)
     resetPokedex();
@@ -170,7 +397,7 @@ const generatePokedex = async (data) => {
     }
 
     makeCard(data);
-    
+
 
   } else { // The data provided doesn't contain a direct ID (comes from /pokemon/)
     data.results.forEach((pokemon) => { // Create placeholder cards for each pokemon being sourced.
@@ -189,19 +416,15 @@ const generatePokedex = async (data) => {
       offset++; // A card has been made. Increase the search offset by 1
     })
   }
-  
+
   isLoading = false; // All cards requested have been loaded. We can now allow more calls to be called.
 }
-
-
 
 
 
 // ---------------------------------------
 // ------------ DATA FETCHING ------------
 // ---------------------------------------
-
-
 
 const fetchData = async (params) => {
   isLoading = true;
@@ -212,7 +435,7 @@ const fetchData = async (params) => {
     }
     const data = await response.json();
     // console.log("Fetched:",data)
-    return(data); // Only return the results from the fetched data
+    return (data); // Only return the results from the fetched data
   } catch (error) {
     console.log(error)
   }
@@ -220,12 +443,7 @@ const fetchData = async (params) => {
 
 
 
-////////////////////////////////////////
 // FLAVOR TEXT -> pokemon-species.flavor_text_entries[i]
-////////////////////////////////////////
-
-
-
 
 
 
@@ -313,7 +531,7 @@ const loadLandingPage = async () => {
   carouselContainer.classList.add("carousel-container");
   carousel.appendChild(carouselContainer);
 
-  const carouselCardCount = [0,1,2];
+  const carouselCardCount = [0, 1, 2];
   carouselCardCount.forEach(async () => { // Creates 3 Carousel Cards
     const randomPokemon = parseInt(Math.random() * 1025); // Gets a random Pokemon Index 1-1025
     const pokemon = await fetchData(`pokemon/${randomPokemon}`)
@@ -341,7 +559,7 @@ const loadLandingPage = async () => {
   });
 
   /// LANDING GRID
-  
+
 
   const gridContainer = document.createElement("article");
   gridContainer.id = "landing-grid";
@@ -360,12 +578,12 @@ const loadLandingPage = async () => {
   const teamSplit = document.createElement("div");
   teamSplit.classList.add("team-split");
   teamUnit.appendChild(teamSplit);
-  
-  const imgSize = [0,1,2];
+
+  const imgSize = [0, 1, 2];
   imgSize.forEach(async () => { // Creates 3 random pokemon images
     const randomPokemon = parseInt(Math.random() * 1025);
     const pokemon = await fetchData(`pokemon/${randomPokemon}`);
-    
+
     const teamImg = document.createElement("img");
     teamImg.setAttribute("src", pokemon.sprites.front_default);
     teamSplit.appendChild(teamImg);
@@ -396,7 +614,7 @@ const loadLandingPage = async () => {
 
   const gymSize = [0, 1, 2, 3, 4];
   gymSize.forEach(async () => { // Creates 3 random pokemon images
-    const randomGym = parseInt(Math.random() * 66) +1;
+    const randomGym = parseInt(Math.random() * 66) + 1;
 
     const badgeImg = document.createElement("img");
     badgeImg.setAttribute("src", `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/badges/${randomGym}.png`);
@@ -448,7 +666,7 @@ const loadPokedexPage = () => {
 
   const searchBarContainer = document.createElement("div");
   searchContainer.appendChild(searchBarContainer);
-  
+
   const searchInput = document.createElement("input")
   searchInput.id = "search-input";
   searchInput.setAttribute("type", "search");
@@ -514,16 +732,11 @@ const loadPokedexPage = () => {
 
 
 const loadPartyPage = () => {
-
 }
 
 
 const loadBattlePage = () => {
-
 }
-
-
-
 
 
 // ---------------------------------------
@@ -562,7 +775,7 @@ const updatePage = (navID) => {
   const pages = main.children;  // Logs every child of main (These are all the individual pages)
 
   for (let i = 0; i < pages.length; i++) {  // Iterate through every page
-    if (!pages[i].classList.contains("hidden")){  // If the page is not hidden (active page)
+    if (!pages[i].classList.contains("hidden")) {  // If the page is not hidden (active page)
       pages[i].classList.add("hidden"); // Give it the class hidden (turn it off)
       pages[i].innerHTML = ""; // Removes all the contents.
     }
@@ -611,20 +824,22 @@ nav.addEventListener("click", (event) => { navClick(event.target) });
 
 
 
-
-
 // ----------------------------------------
 // ------------ LAUNCH ACTIONS ------------
 // ----------------------------------------
 
-
+let timeDelay = false;
 window.addEventListener("scroll", () => {
   const pokedexNav = document.getElementById("pokedex-nav")
   if (pokedexNav.classList.contains("current-page")) {
-    if (!isLoading) {
+    if (!isLoading && !timeDelay) {
       if (window.scrollY + window.innerHeight >= document.body.scrollHeight - 55) {
         isLoading = true;
+        timeDelay = true;
         generatePokedex(fetchData("pokemon"));
+        setTimeout(() => {
+          timeDelay = false;
+        }, 200);
       }
     }
   }
