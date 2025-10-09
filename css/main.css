@@ -316,6 +316,7 @@ header span {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   gap: .25rem;
 
   min-height: 12rem;
@@ -405,6 +406,7 @@ header span {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   gap: 2rem;
 
   background-color: var(--white);
@@ -418,6 +420,18 @@ header span {
   display: flex;
   flex-direction: row;
   gap: -4rem;
+}
+
+.gym-split {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.gym-split img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
 }
 
 
@@ -669,6 +683,7 @@ search {
   min-height: 16rem;
   margin-top: 4rem;
   margin-bottom: 0rem;
+  max-width: 22rem;
 
   background-color: #fff;
   padding: 2rem;

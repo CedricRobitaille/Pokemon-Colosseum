@@ -19,7 +19,6 @@ const filterToggle = (event) => {
   event.target.parentNode.classList.toggle("open"); // Toggle the class on the target's parent.
 }
 
-
 /**
  * Toggles between the dropdown states.
  * If 'any' was clicked, turn all on/off.
@@ -66,6 +65,16 @@ const filterTypeToggle = (event) => {
 // ------- POKEDEX CARD GENERATION -------
 // ---------------------------------------
 
+const resetPokedex = () => {
+  offset = 0;
+  try {
+    const pokedexContainer = document.getElementById("pokedex-pokemon");
+    pokedexContainer.innerHTML = "";
+  } catch (error) {
+
+  }
+}
+
 /**
  * Generates a card in the pokedex, based on a fetched pokemon.
  *  @param {object} data - Individual pokemon object data
@@ -110,6 +119,29 @@ const generatePokedexCard = async (pokemon) => {
   return card;
 }
 
+/**
+ * Creates a placeholder card in the dom.
+ * ID value is added from the pokemon provided.
+ * @param {object} data - Object containing pokemon data (either from /pokemon/ or /pokemon/#/)
+ */
+const generatePlaceholderCard = (data) => {
+  let pokemonID = 0; 
+
+  if ("id" in data) {
+    pokemonID = data.id;
+  } else {
+    pokemonID = data.url.replace("https://pokeapi.co/api/v2/pokemon/", "").replace("/", "")
+  }
+
+  const pokedex = document.getElementById("pokedex-pokemon"); // Get the pokedex parent container
+
+  const card = document.createElement("div"); // Create the placeholder card element
+  card.id = pokemonID;  // Assign the card a unique ID
+  card.classList.add("pokedex-card"); // Give the card styling
+  card.classList.add("placeholder");  // Give class 'Placeholder' for styling.
+  pokedex.appendChild(card) // Add the placeholder to the pokedex container
+}
+
 
 /**
  * Generates the list of pokedex entries based on provided pokemon data.
@@ -123,32 +155,43 @@ const generatePokedex = async (data) => {
   data = await data; // Since fetchData is async, the data we're using needs to be logged asyncly
   console.log("Generating Pokedex from:",data)
 
-  data.results.forEach((pokemon) => { // Create placeholder cards for each pokemon being sourced.
-    const pokemonID = pokemon.url.replace("https://pokeapi.co/api/v2/pokemon/", "").replace("/", ""); // Source the pokemon's ID from (/pokemon/)
-    const pokedex = document.getElementById("pokedex-pokemon"); // Get the pokedex parent container
+  if ("id" in data) { // The data provided contains a direct ID (comes from /pokemon/#)
+    resetPokedex();
+    generatePlaceholderCard(data)
+
+    const makeCard = async (data) => {
+      const pokeID = data.id;
+      const card = await generatePokedexCard(data)
+
+      const cardContainer = document.getElementById(pokeID)
+      cardContainer.classList.remove("placeholder");
+      console.log(card)
+      cardContainer.appendChild(card)
+    }
+
+    makeCard(data);
     
-    const card = document.createElement("div"); // Create the placeholder card element
-    card.id = pokemonID;  // Assign the card a unique ID
-    card.classList.add("pokedex-card"); // Give the card styling
-    card.classList.add("placeholder");  // Give class 'Placeholder' for styling.
-    pokedex.appendChild(card) // Add the placeholder to the pokedex container
-  });
 
-  data.results.forEach(async (pokemon) => {
-    const pokeID = pokemon.url.replace("https://pokeapi.co/api/v2/pokemon/", "").replace("/", ""); // FROM THE URL, Remove all the junk, leave the pokemon ID
-    const pokeData = await fetchData(`pokemon/${pokeID}`) // Fetch the data specific to the current pokemon
-    const card = await generatePokedexCard(pokeData) // Generate a card based on the individual pokemon's data
+  } else { // The data provided doesn't contain a direct ID (comes from /pokemon/)
+    data.results.forEach((pokemon) => { // Create placeholder cards for each pokemon being sourced.
+      generatePlaceholderCard(pokemon);
+    });
 
-    const cardContainer = document.getElementById(pokeID) // Get the placeholder container with the matching ID
-    cardContainer.classList.remove("placeholder");  // Remove the placeholder class since the card data has loaded
-    cardContainer.appendChild(card) // Place the contents.
+    data.results.forEach(async (pokemon) => {
+      const pokeID = pokemon.url.replace("https://pokeapi.co/api/v2/pokemon/", "").replace("/", ""); // FROM THE URL, Remove all the junk, leave the pokemon ID
+      const pokeData = await fetchData(`pokemon/${pokeID}`) // Fetch the data specific to the current pokemon
+      const card = await generatePokedexCard(pokeData) // Generate a card based on the individual pokemon's data
 
-    offset++; // A card has been made. Increase the search offset by 1
-  })
+      const cardContainer = document.getElementById(pokeID) // Get the placeholder container with the matching ID
+      cardContainer.classList.remove("placeholder");  // Remove the placeholder class since the card data has loaded
+      cardContainer.appendChild(card) // Place the contents.
+
+      offset++; // A card has been made. Increase the search offset by 1
+    })
+  }
+  
   isLoading = false; // All cards requested have been loaded. We can now allow more calls to be called.
 }
-
-
 
 
 
@@ -190,12 +233,188 @@ const fetchData = async (params) => {
 // ------------ PAGE CREATION ------------
 // ---------------------------------------
 
-const loadLandingPage = () => {
+/**
+ * Loads the Landing Page based on the following structure skeleton stucture:
+ *    <header>
+        <div class="header-content">
+          <h1></h1>
+          <button></button>
+        </div>
+        <img src="" alt="">
+      </header>
+      <div class="carousel">
+        <h2></h2>
+        <div class="carousel-container">
+          <div class="carousel-card"> // Sources a random pokemon (3 Carousel Cards)
+            <img class="carousel-sprite" src="" alt=""> // Adds the image from the selected pokemon's data
+            <h3 class="carousel-ID"></h3> // Adds the ID from the selected pokemon's data
+            <p class="carousel-name"></p> // Adds the name from the selected pokemon's data
+          </div>
+        </div>
+      </div>
+      <article id="landing-grid">
+        <div class="landing-grid-unit">
+          <h2></h2>
+          <div class="team-split">
+            <img src="" alt=""> Grabs 3 random pokemon pictures
+          </div>
+          <button></button>
+        </div>
 
+        <div class="landing-grid-unit">
+          <h2></h2>
+          <div class="team-split">
+            <img src="" alt=""> Grabs 3 random gym badges pictures
+          </div>
+          <button></button>
+        </div>
+      </article>
+ */
+const loadLandingPage = async () => {
+  const landingPageContainer = document.getElementById('landing-page');
+
+  /// HEADER
+
+  const header = document.createElement("header");
+  landingPageContainer.appendChild(header);
+
+  const headerContent = document.createElement("div");
+  headerContent.classList.add("header-content");
+  header.appendChild(headerContent);
+
+  const h1 = document.createElement("h1");
+  h1.innerHTML = "Build Your Party<br><span>Conquer the Colosseum</span>";
+  headerContent.appendChild(h1);
+
+  const cta = document.createElement("button");
+  cta.classList.add("btn", "btn-cta");
+  cta.innerText = "Get Started";
+  headerContent.appendChild(cta);
+  cta.addEventListener("click", () => {
+    navUpdate("pokedex-nav");
+    updatePage("pokedex-nav")
+  })
+
+  const headerImg = document.createElement("img");
+  // headerImg.setAttribute("src", ""); -> Set when there's an image to be placed
+  header.appendChild(headerImg);
+
+  /// CAROUSEL
+
+  const carousel = document.createElement("div");
+  carousel.classList.add("carousel");
+  landingPageContainer.appendChild(carousel);
+
+  const carouselHeader = document.createElement("h2");
+  carouselHeader.innerText = "Discover Pokemon"
+  carousel.appendChild(carouselHeader);
+
+  const carouselContainer = document.createElement("div");
+  carouselContainer.classList.add("carousel-container");
+  carousel.appendChild(carouselContainer);
+
+  const carouselCardCount = [0,1,2];
+  carouselCardCount.forEach(async () => { // Creates 3 Carousel Cards
+    const randomPokemon = parseInt(Math.random() * 1025); // Gets a random Pokemon Index 1-1025
+    const pokemon = await fetchData(`pokemon/${randomPokemon}`)
+
+    console.log(pokemon)
+
+    const carouselCard = document.createElement("div");
+    carouselCard.classList.add("carousel-card");
+    carouselContainer.appendChild(carouselCard);
+
+    const carouselImg = document.createElement("img");
+    carouselImg.setAttribute("src", pokemon.sprites.front_default);
+    carouselImg.classList.add("carousel-sprite");
+    carouselCard.appendChild(carouselImg);
+
+    const carouselID = document.createElement("h3");
+    carouselID.classList.add("carousel-ID");
+    carouselID.innerText = pokemon.id;
+    carouselCard.appendChild(carouselID);
+
+    const pokemonName = document.createElement("p");
+    pokemonName.classList.add("carousel-name");
+    pokemonName.innerText = pokemon.name;
+    carouselCard.appendChild(pokemonName);
+  });
+
+  /// LANDING GRID
+  
+
+  const gridContainer = document.createElement("article");
+  gridContainer.id = "landing-grid";
+  landingPageContainer.appendChild(gridContainer);
+
+  /// LEFT GRID ITEM
+
+  const teamUnit = document.createElement("div");
+  teamUnit.classList.add("landing-grid-unit");
+  gridContainer.appendChild(teamUnit);
+
+  const teamHeader = document.createElement("h2");
+  teamHeader.innerText = "Build Your Team";
+  teamUnit.appendChild(teamHeader);
+
+  const teamSplit = document.createElement("div");
+  teamSplit.classList.add("team-split");
+  teamUnit.appendChild(teamSplit);
+  
+  const imgSize = [0,1,2];
+  imgSize.forEach(async () => { // Creates 3 random pokemon images
+    const randomPokemon = parseInt(Math.random() * 1025);
+    const pokemon = await fetchData(`pokemon/${randomPokemon}`);
+    
+    const teamImg = document.createElement("img");
+    teamImg.setAttribute("src", pokemon.sprites.front_default);
+    teamSplit.appendChild(teamImg);
+  })//
+
+  const teamButton = document.createElement("button");
+  teamButton.classList.add("btn", "btn-ghost");
+  teamButton.innerText = "Start Building";
+  teamButton.addEventListener("click", () => {
+    navUpdate("party-nav");
+    updatePage("party-nav")
+  })
+  teamUnit.appendChild(teamButton);
+
+  /// RIGHT GRID ITEM
+
+  const gymUnit = document.createElement("div");
+  gymUnit.classList.add("landing-grid-unit");
+  gridContainer.appendChild(gymUnit);
+
+  const gymHeader = document.createElement("h2");
+  gymHeader.innerText = "Challenge Gyms";
+  gymUnit.appendChild(gymHeader);
+
+  const gymSplit = document.createElement("div");
+  gymSplit.classList.add("gym-split");
+  gymUnit.appendChild(gymSplit);
+
+  const gymSize = [0, 1, 2, 3, 4];
+  gymSize.forEach(async () => { // Creates 3 random pokemon images
+    const randomGym = parseInt(Math.random() * 66) +1;
+
+    const badgeImg = document.createElement("img");
+    badgeImg.setAttribute("src", `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/badges/${randomGym}.png`);
+    gymSplit.appendChild(badgeImg);
+  })//
+
+  const gymButton = document.createElement("button");
+  gymButton.classList.add("btn", "btn-ghost");
+  gymButton.innerText = "Let's Fight";
+  gymButton.addEventListener("click", () => {
+    navUpdate("battle-nav");
+    updatePage("battle-nav")
+  })
+  gymUnit.appendChild(gymButton);
 }
 
 /**
- * Loads the pokedex Page based on the following structure skeleton stucture:
+ * Loads the Pokedex Page based on the following structure skeleton stucture:
  *  <div id="pokemon-search">
       <search>
         <div>
@@ -217,6 +436,7 @@ const loadLandingPage = () => {
     </div>
  */
 const loadPokedexPage = () => {
+  resetPokedex();
   const pokedex = document.getElementById("pokedex");
 
   const pokeSearch = document.createElement("div");
@@ -233,10 +453,18 @@ const loadPokedexPage = () => {
   searchInput.id = "search-input";
   searchInput.setAttribute("type", "search");
   searchInput.setAttribute("placeholder", "Search for a Pokemon / ID")
+  searchInput.addEventListener("keydown", (event) => { // The user clicked a key while in the search
+    if (event.key === "Enter") {
+      generatePokedex(fetchData(`pokemon/${searchInput.value}`));
+    }
+  });
   searchBarContainer.appendChild(searchInput);
 
   const searchButton = document.createElement("button");
   searchButton.id = "search-button";
+  searchButton.addEventListener("click", () => { // On search button click
+    generatePokedex(fetchData(`pokemon/${searchInput.value}`));
+  });
   searchBarContainer.appendChild(searchButton);
 
   const filtersContainer = document.createElement("div")
@@ -383,6 +611,13 @@ nav.addEventListener("click", (event) => { navClick(event.target) });
 
 
 
+
+
+// ----------------------------------------
+// ------------ LAUNCH ACTIONS ------------
+// ----------------------------------------
+
+
 window.addEventListener("scroll", () => {
   const pokedexNav = document.getElementById("pokedex-nav")
   if (pokedexNav.classList.contains("current-page")) {
@@ -395,7 +630,7 @@ window.addEventListener("scroll", () => {
   }
 });
 
-
+loadLandingPage();
 
 
 
