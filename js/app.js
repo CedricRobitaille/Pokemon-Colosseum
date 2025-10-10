@@ -535,7 +535,6 @@ const generatePokedex = async (data) => {
 // ---------------------------------------
 
 const fetchData = async (params) => {
-  isLoading = true;
   try {
     const response = await fetch(rootUrl + params + `?offset=${offset}&limit=${limit}`);
     if (!response.ok) { // TRUE = Status code within 200-299 | FALSE = Status code outside 200-299 (ie: 404 -> Not Found)
@@ -549,9 +548,6 @@ const fetchData = async (params) => {
   }
 }
 
-
-
-// FLAVOR TEXT -> pokemon-species.flavor_text_entries[i]
 
 
 

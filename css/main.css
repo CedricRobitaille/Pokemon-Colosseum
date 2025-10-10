@@ -7,6 +7,7 @@
   --dark: #0d2c41;
   --grey: #6f7b8b;
   --light-grey: #e9eff8;
+  --off-white: #FDFDFF;
 
   --drop-shadow: rgba(63, 102, 153, 0.125);
 
@@ -626,10 +627,6 @@ search {
   border-radius: 4px;
 }
 
-#filters li::before:hover {
-  background-color: var(--poke-red);
-}
-
 #filters li:hover {
   background-color: var(--light-grey);
 }
@@ -1167,9 +1164,283 @@ search {
   cursor: pointer;
 }
 
+
+
+
+
+
+
+
 /* -------------------------------------- */
-/* ------------  ------------ */
+/* ------------- PARTY PAGE ------------- */
 /* -------------------------------------- */
+
+
+#party {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+}
+
+#party-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+
+/* Party Overview */
+
+#party-overview {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  
+  background: var(--off-white);
+  border-radius: 1.5rem;
+  padding: 0 1.5rem;
+
+  overflow-x: scroll;
+  scrollbar-color: #c2d0da transparent;
+  box-shadow: 0 4px 18px -2px var(--drop-shadow);
+}
+
+.overview-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+
+  background-color: var(--white);
+  width: 14rem;
+  margin: 6rem 0 1.5rem;
+  padding: 5rem 1.5rem 1.25rem 1.5rem;
+  border-radius: 16px;
+
+  box-shadow: 0 8px 22px -4px var(--drop-shadow);
+  transition: .5s;
+}
+
+.overview-card:hover {
+  margin: 5rem 0 2.5rem;
+}
+
+.overview-card img {
+  position: absolute;
+  top: -5.5rem;
+  width: 85%;
+  max-width: 10rem;
+
+  image-rendering: pixelated;
+}
+
+.overview-card h3 {
+  width: 100%;
+  font-size: 1.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overview-card .type-container {
+  display: flex;
+  flex-direction: row;
+  gap: .5rem;
+}
+
+.overview-card .type-container p {
+  padding: .4rem .75rem .45rem;
+  background-color: var(--light-grey);
+  border-radius: 6px;;
+}
+
+/* Party Details */
+
+#party-details {
+  display: flex;
+  flex-direction: column; 
+
+  background-color: var(--white);
+  border-radius: 24px;
+  
+  box-shadow: 0 8px 24px -4px var(--drop-shadow);
+  overflow: hidden;
+}
+
+#party h1 {
+  width: 100%;
+  padding: 1rem 2rem;
+  margin: 0;
+
+  color: var(--dark);
+  font-size: 1.5rem;
+
+  z-index: 100;
+  box-shadow: 0px 6px 16px -4px var(--drop-shadow);
+}
+
+#party-details-list {
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--off-white);
+  padding: 1rem;
+}
+
+.party-pokemon-containter {
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--white);
+  border-radius: 16px;
+  padding: 0 1rem;
+
+  box-shadow: 0px 4px 16px -4px var(--drop-shadow);
+}
+
+.party-pokemon-containter.open {
+  padding: 0 1rem 1rem 1rem;
+}
+
+
+
+.party-pokemon-overview {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  
+  cursor: pointer;
+}
+
+.party-pokemon-containter.open .party-pokemon-overview {
+  border-bottom: 2px solid var(--light-grey);
+}
+
+.party-pokemon-overview-left {
+  display: flex;
+  flex-direction: row;
+  gap: .5rem;
+  align-items: center;
+}
+
+.party-pokemon-overview-left img {
+  height: 4rem;
+  aspect-ratio: 1/1;
+}
+
+.party-pokemon-overview-left p {
+  font-size: 0.85rem;
+  color: var(--grey);
+}
+
+.party-pokemon-overview-left h3 {
+  font-size: 1.35rem;
+  color: var(--dark);
+}
+
+.party-pokemon-overview-right {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  padding-right: 3rem;
+}
+
+.party-pokemon-overview-right p {
+  padding: .4rem .75rem .45rem;
+  background-color: var(--light-grey);
+  border-radius: 6px;
+}
+
+.party-pokemon-overview-right::after {
+  content: "";
+  position: absolute;
+  top: .75rem;
+  right: .5rem;
+  height: 8px;
+  width: 8px;
+  border-right: 3px solid var(--grey);
+  border-bottom: 3px solid var(--grey);
+  transform: rotate(45deg);
+  
+}
+.party-pokemon-containter:hover .party-pokemon-overview-right::after {
+  animation: party-toggle-bounce-closed 2s ease-in-out infinite;
+}
+
+.party-pokemon-containter.open .party-pokemon-overview-right::after {
+  transform: rotate(225deg);
+  top: 1rem;
+}
+
+.party-pokemon-containter.open:hover .party-pokemon-overview-right::after {
+  animation: party-toggle-bounce-open 2s ease-in-out infinite;
+}
+
+@keyframes party-toggle-bounce-closed {
+  0% {
+    top: .75rem;
+  }
+
+  25% {
+    top: 1rem;
+  }
+
+  75% {
+    top: .5rem;
+  }
+
+  101% {
+    top: .75rem;
+  }
+}
+
+@keyframes party-toggle-bounce-open {
+  0% {
+    top: 1rem;
+  }
+
+  25% {
+    top: 1.25rem;
+  }
+
+  75% {
+    top: .75rem;
+  }
+
+  101% {
+    top: 1rem;
+  }
+}
+
+/* DETAILED OVERVIEW */
+
+.party-pokemon-details {
+  display: none;
+}
+
+.party-pokemon-containter.open .party-pokemon-details {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-content: center;
+  
+  padding: 1rem;
+}
+
+.party-pokemon-traits {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+
+}
+
+
+
+
 
 
 

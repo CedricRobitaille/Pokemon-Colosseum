@@ -30,10 +30,80 @@
     </section>
 
     <section id="pokedex" class="hidden">
-      
+
     </section>
 
     <section id="party" class="hidden">
+
+      <!-- MAIN COLUMN -->
+
+      <div id="party-main">
+        <!-- PARTY OVERVIEW -->
+        <div id="party-overview">
+          <div class="overview-card">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/15.png" alt="">
+            <h3>Pokemon Nameeeeee</h3>
+            <div class="type-container">
+              <p>Water</p>
+              <p>Dragon</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PARTY DETAILS -->
+        <div id="party-details">
+          <h1>Your Party</h1>
+          <!-- list -->
+          <ol id="party-details-list">
+            <li class="party-pokemon-containter open" id="1">
+              <!-- overview -->
+              <div class="party-pokemon-overview">
+                <div class="party-pokemon-overview-left">
+                  <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/15.png" alt="">
+                  <p>01</p>
+                  <h3>Magikarp</h3>
+                </div>
+                <div class="party-pokemon-overview-right">
+                  <p>Water</p>
+                  <p>Dragon</p>
+                </div>
+              </div>
+              <!-- details -->
+               <div class="party-pokemon-details">
+                <!-- traits -->
+                <div class="party-pokemon-traits">
+                  <h4>Nickname</h4>
+                  <input name="nickname" id="nickname-1" type="text" value="Magikarp">
+                  <h4>Ability</h4>
+                  <p class="party-pokemon-input">Swift Swim</p>
+                  <h4>Held Item</h4>
+                  <p class="party-pokemon-input item">Pecha Berry</p>
+                </div>
+                <!-- stats -->
+                <div class="party-pokemon-stats">
+                  <h4>Stats</h4>
+                  <!-- STATS BAR -->
+                </div>
+                <!-- moves -->
+                <div class="party-pokemon-moves">
+                  <h4>Moves</h4>
+                  <p class="party-pokemon-input">Bind</p>
+                  <p class="party-pokemon-input">Splash</p>
+                  <p class="party-pokemon-input">Tackle</p>
+                  <p class="party-pokemon-input">---</p>
+                </div>
+               </div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- SEARCH MODALS -->
+
+      <div id="party-search">
+
+      </div>
+
     </section>
 
   </main>
