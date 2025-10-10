@@ -8,35 +8,119 @@ let isLoading = false;
 
 
 const party = {
-  currentParty: [],
+  currentParty: [
+    {
+      abilitiesAvailable: ["swift-swim", "rattled"],
+      abilityEquipped: "swift-swim",
+      heldItem: "Oran Berry",
+      movesAvailable: ['tackle', 'hydro-pump', 'splash', 'flail', 'bounce'],
+      movesEquipped: ['bounce', 'bounce', 'tackle', 'hydro-pump'],
+      name: "magikarp",
+      nickname: "magikarp",
+      sprites: {
+        front_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/129.png",
+        back_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/129.png"
+      },
+      stats: [
+        { name: 'hp', base_stat: 20 },
+        { name: 'attack', base_stat: 10 },
+        { name: 'defense', base_stat: 55 },
+        { name: 'special-attack', base_stat: 15 },
+        { name: 'special-defense', base_stat: 20 },
+        { name: 'speed', base_stat: 80 }
+      ],
+      types: ["water"]
+    }
+  ],
   maxSize: 6,
   currentSize: 0,
+
+  /**                                          ----  -----------  --------  -----  -----  -----  ---------
+   * Adds a pokemon to the party. Includes The Name, Sprite URLs, Nickname, Types, Stats, Moves, Abilities, and Held Item
+   * @param {object} pokemon - Selected pokemon to add to our party. (Comes from /pokemon/#/)
+   */
   async addToParty(pokemon) {
+    console.log("Adding", pokemon)
+
+    const setPokemonProperties = (pokemon) => {
+      const index = this.currentSize;
+      this.currentParty.push({}); // Start a new pokemon here.
+
+      const currentPokemon = this.currentParty[index]; // This is the current Pokemon.
+      currentPokemon.name = pokemon.name; // Give the pokemon it's name
+      currentPokemon.nickname = pokemon.name; // Set default value for nickname
+
+      currentPokemon.sprites = {}; // Initiates the pokemon sprites sub-object
+      Object.keys(pokemon.sprites).forEach((spriteName) => { // For each sprite in the pokemon sprite list
+        if (pokemon.sprites[spriteName] != null) { // Makes sure the current sprite isnt NULL
+          currentPokemon.sprites[spriteName] = pokemon.sprites[spriteName];
+        }
+      });
+
+      currentPokemon.types = [] // Initializes the types sub-array
+      pokemon.types.forEach((type) => { // Runs through everyarray element
+        currentPokemon.types.push(type.type.name);  // Adds the type `type[type{name: ---}]`
+      })
+
+      currentPokemon.stats = [] // Initializes the stats sub-array
+      pokemon.stats.forEach((stat, index) => { // Goes through each stat element in the stats array
+        currentPokemon.stats.push({});  // Creates the new stat object on the current pokemon
+        currentPokemon.stats[index].name = stat.stat.name;  // Give this object a name
+        currentPokemon.stats[index].base_stat = stat.base_stat; // Give this object a value
+      })
+
+      currentPokemon.movesAvailable = []  // Collection of all moves available
+      pokemon.moves.forEach((move) => { // Goes through the source pokemon's moves array
+        currentPokemon.movesAvailable.push(move.move.name); // adds the move name `move[move{name}]
+      })
+
+      currentPokemon.movesEquipped = [] // Collection of moves the pokemon can use during combat
+      for (let index = 0; index < Math.min(currentPokemon.movesAvailable.length, 4); index++) { // Loops though the quantity of moves available, capped at 4. (ie: Magikarp only knows 2, so dont go past 2, whereas others know 4+)
+        const move = Math.floor(Math.random() * currentPokemon.movesAvailable.length); // Gets a random move from their possible moves
+        currentPokemon.movesEquipped.push(currentPokemon.movesAvailable[move]); // Add the move to their arsenol.
+      }
+
+      currentPokemon.abilitiesAvailable = [] // initiates the array
+      pokemon.abilities.forEach((ability) => {  // For each ability in the ability array
+        currentPokemon.abilitiesAvailable.push(ability.ability.name); // Sets the element to the ability name. Can use the name for the API call.
+      })
+
+      const randomAbilityIndex = Math.floor(Math.random() * currentPokemon.abilitiesAvailable.length);
+      currentPokemon.abilityEquipped = currentPokemon.abilitiesAvailable[randomAbilityIndex];
+
+      currentPokemon.heldItem = ""
+
+      console.log("Current Pokemon:", currentPokemon) // The current Pokemon
+    }
+
     if (this.currentSize < this.maxSize) {
-      this.currentParty.push({ name: pokemon.name });
-
+      setPokemonProperties (pokemon);
       pokedexPartyAdd(pokemon)
-
       this.currentSize++;
     } else {
       // PARTY IS FULL WARN THE USER
     }
+    console.log("Current Party:", this.currentParty);
   },
+
+
   /**
    * Removes a pokemon from the current party. This selection is based on the name of the pokemon.
    * @param {string} pokemon - The array index for the party
    */
   removeFromParty(index) {
     pokedexPartyRemove(index); // Removes the element from the 
-    if (this.currentParty.length > 1) { // Doesn't like removing the last index
-      this.currentParty.splice(index - 1, 1) // Removes the element from the array.
+    if (this.currentParty.length > 0) { // Doesn't like removing the last index
+      this.currentParty.splice(index, 1) // Removes the element from the array.
     } else {
       this.currentParty = [];
     }
     
-    console.log(this.currentParty)
+    console.log("Removed Pokemon.\nCurrent Party:",this.currentParty)
     this.currentSize--;
   },
+
+
 }
 
 
@@ -111,9 +195,9 @@ const togglePartyModal = () => {
 
 function pokedexPartyRemove(index) {
   const partyContainer = document.getElementById("party-container");
-  const partyElement = document.getElementById(`party${index}`)
+  const partyElement = partyContainer.children[index]; // Gets the child at the index provided
   if (partyElement) {
-    partyContainer.removeChild(partyElement);
+    partyContainer.removeChild(partyElement); // Removes the child from the parent
   }
 
   const partyElementCollection = document.querySelector(".party-element")
@@ -127,7 +211,6 @@ function pokedexPartyRemove(index) {
 
 async function pokedexPartyAdd(pokemon) {
   pokemon = await pokemon;
-  console.log(pokemon)
   const partyModal = document.getElementById("party-modal");
   const partySize = party.currentSize;
 
@@ -159,8 +242,10 @@ async function pokedexPartyAdd(pokemon) {
 
   const partyRemoveButton = document.createElement("button");
   partyRemoveButton.classList.add("party-remove");
-  partyRemoveButton.addEventListener("click", () => {
-    party.removeFromParty(partySize);
+  partyRemoveButton.addEventListener("click", (event) => {
+    const currentElement = event.currentTarget.parentElement;
+    const index = Array.from(currentElement.parentElement.children).indexOf(currentElement); // .children gives a nodelist. Nodelists cannot be indexed through the indexOf function, so we need to convert the nodelist into a shallow copy with `Array.from`
+    party.removeFromParty(index);
   });
   partyElement.appendChild(partyRemoveButton);
 }
@@ -848,10 +933,13 @@ const loadPokedexPage = () => {
   generatePokedex(fetchData("pokemon"));
 }
 
-
+/**
+ * 
+ */
 const loadPartyPage = () => {
-}
 
+
+}
 
 const loadBattlePage = () => {
 }
