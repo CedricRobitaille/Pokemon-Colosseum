@@ -22,6 +22,7 @@
   padding: 0;
 
   color: var(--black);
+  list-style: none;
 }
 
 html {
@@ -1199,6 +1200,7 @@ search {
   background: var(--off-white);
   border-radius: 1.5rem;
   padding: 0 1.5rem;
+  min-height: 10rem;
 
   overflow-x: scroll;
   scrollbar-color: #c2d0da transparent;
@@ -1210,12 +1212,12 @@ search {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: .25rem;
+  gap: .5rem;
 
   background-color: var(--white);
   width: 14rem;
-  margin: 6rem 0 1.5rem;
-  padding: 5rem 1.5rem 1.25rem 1.5rem;
+  margin: 5rem 0 1.5rem;
+  padding: 6rem 1.5rem 1.25rem 1.5rem;
   border-radius: 16px;
 
   box-shadow: 0 8px 22px -4px var(--drop-shadow);
@@ -1223,12 +1225,12 @@ search {
 }
 
 .overview-card:hover {
-  margin: 5rem 0 2.5rem;
+  margin: 4rem 0 2.5rem;
 }
 
 .overview-card img {
   position: absolute;
-  top: -5.5rem;
+  top: -4rem;
   width: 85%;
   max-width: 10rem;
 
@@ -1241,6 +1243,8 @@ search {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
+  text-transform: capitalize;
 }
 
 .overview-card .type-container {
@@ -1252,7 +1256,8 @@ search {
 .overview-card .type-container p {
   padding: .4rem .75rem .45rem;
   background-color: var(--light-grey);
-  border-radius: 6px;;
+  border-radius: 6px;
+  text-transform: capitalize;
 }
 
 /* Party Details */
@@ -1268,16 +1273,42 @@ search {
   overflow: hidden;
 }
 
-#party h1 {
+#party-details-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+
+  padding: .75rem 1.5rem .75rem 2rem;
+
+  z-index: 100;
+  box-shadow: 0px 6px 16px -4px var(--drop-shadow);
+}
+
+#party-details-header h1 {
   width: 100%;
-  padding: 1rem 2rem;
   margin: 0;
 
   color: var(--dark);
   font-size: 1.5rem;
+}
 
-  z-index: 100;
-  box-shadow: 0px 6px 16px -4px var(--drop-shadow);
+#party-details-header button {
+  padding: .5rem .85rem .55rem .85rem;
+  background-color: var(--white);
+  
+  border: 2px solid var(--poke-red);
+  border-radius: 12px;;
+  
+  color: var(--poke-red);
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: .25s;
+}
+
+#party-details-header button:hover {
+  background-color: var(--poke-red);
+  color: var(--white);
 }
 
 #party-details-list {
@@ -1289,7 +1320,7 @@ search {
   padding: 1rem;
 }
 
-.party-pokemon-containter {
+.party-pokemon-container {
   display: flex;
   flex-direction: column;
 
@@ -1308,7 +1339,7 @@ search {
   cursor: pointer;
 }
 
-.party-pokemon-containter.open .party-pokemon-overview {
+.party-pokemon-container.open .party-pokemon-overview {
   border-bottom: 2px solid var(--light-grey);
 }
 
@@ -1332,6 +1363,7 @@ search {
 .party-pokemon-overview-left h3 {
   font-size: 1.35rem;
   color: var(--dark);
+  text-transform: capitalize;
 }
 
 .party-pokemon-overview-right {
@@ -1348,6 +1380,7 @@ search {
   padding: .4rem .75rem .45rem;
   background-color: var(--light-grey);
   border-radius: 6px;
+  text-transform: capitalize;
 }
 
 .party-pokemon-overview-right::after {
@@ -1367,12 +1400,12 @@ search {
   animation: party-toggle-bounce-closed 2s ease-in-out infinite;
 }
 
-.party-pokemon-containter.open .party-pokemon-overview-right::after {
+.party-pokemon-container.open .party-pokemon-overview-right::after {
   transform: rotate(225deg);
   top: 1rem;
 }
 
-.party-pokemon-containter.open .party-pokemon-overview:hover .party-pokemon-overview-right::after {
+.party-pokemon-container.open .party-pokemon-overview:hover .party-pokemon-overview-right::after {
   animation: party-toggle-bounce-open 2s ease-in-out infinite;
 }
 
@@ -1418,7 +1451,7 @@ search {
   display: none;
 }
 
-.party-pokemon-containter.open .party-pokemon-details {
+.party-pokemon-container.open .party-pokemon-details {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -1439,7 +1472,7 @@ search {
   padding: 1rem 1rem;
 }
 
-.party-pokemon-containter h4 {
+.party-pokemon-container h4 {
   font-size: .75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1459,13 +1492,20 @@ search {
   font-size: 1.125rem;
   font-weight: 700;
 
+  background-color: var(--white);
   padding: .65rem 1.5rem .75rem;
   border: 1px solid var(--light-grey);
   border-radius: 2rem;
+
+  box-shadow: 0px 2px 16px -8px var(--drop-shadow);
 }
 
 .party-pokemon-input:not(input) {
   cursor: pointer;
+  text-transform: capitalize;
+}
+.party-pokemon-input:hover {
+  background-color: var(--light-grey);
 }
 
 .party-pokemon-input:not(input)::after {
@@ -1489,7 +1529,7 @@ search {
 .party-pokemon-stats {
   display: flex;
   flex-direction: column;
-  gap: auto;
+  gap: 1rem;
 
   height: 100%;
   min-width: 16rem;
@@ -1498,6 +1538,9 @@ search {
   border-right: 2px solid var(--light-grey);
 }
 
+.party-pokemon-stats .modal-stats-container {
+  gap: 1rem;
+}
 
 .party-pokemon-stats h4 {
   text-align: center;
@@ -1519,6 +1562,29 @@ search {
 .party-pokemon-moves h4 {
   text-align: right;
   padding-right: .5rem;
+}
+
+/* buttons */
+
+#add-pokemon {
+  background-color: var(--white);
+  padding: .45rem 1rem .55rem;
+  border: 2px solid var(--dark);
+  border-radius: 8px;
+
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--dark);
+
+  box-shadow: 0 4px 16px -2px var(--drop-shadow);
+  cursor: pointer;
+  transition: .25s;
+}
+
+#add-pokemon:hover {
+  background-color: var(--poke-red);
+  border-color: var(--poke-red);
+  color: var(--white);
 }
 
 

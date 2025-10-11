@@ -8,30 +8,7 @@ let isLoading = false;
 
 
 const party = {
-  currentParty: [
-    {
-      abilitiesAvailable: ["swift-swim", "rattled"],
-      abilityEquipped: "swift-swim",
-      heldItem: "Oran Berry",
-      movesAvailable: ['tackle', 'hydro-pump', 'splash', 'flail', 'bounce'],
-      movesEquipped: ['bounce', 'bounce', 'tackle', 'hydro-pump'],
-      name: "magikarp",
-      nickname: "magikarp",
-      sprites: {
-        front_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/129.png",
-        back_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/129.png"
-      },
-      stats: [
-        { name: 'hp', base_stat: 20 },
-        { name: 'attack', base_stat: 10 },
-        { name: 'defense', base_stat: 55 },
-        { name: 'special-attack', base_stat: 15 },
-        { name: 'special-defense', base_stat: 20 },
-        { name: 'speed', base_stat: 80 }
-      ],
-      types: ["water"]
-    }
-  ],
+  currentParty: [],
   maxSize: 6,
   currentSize: 0,
 
@@ -48,7 +25,10 @@ const party = {
 
       const currentPokemon = this.currentParty[index]; // This is the current Pokemon.
       currentPokemon.name = pokemon.name; // Give the pokemon it's name
-      currentPokemon.nickname = pokemon.name; // Set default value for nickname
+      const nickname = currentPokemon.name.split("-")
+      const newNickname = [];
+      nickname.forEach((word) => newNickname.push(word.charAt(0).toUpperCase() + word.slice(1)));
+      currentPokemon.nickname = newNickname.join(" "); // Set default value for nickname
 
       currentPokemon.sprites = {}; // Initiates the pokemon sprites sub-object
       Object.keys(pokemon.sprites).forEach((spriteName) => { // For each sprite in the pokemon sprite list
@@ -70,15 +50,24 @@ const party = {
       })
 
       currentPokemon.movesAvailable = []  // Collection of all moves available
-      pokemon.moves.forEach((move) => { // Goes through the source pokemon's moves array
-        currentPokemon.movesAvailable.push(move.move.name); // adds the move name `move[move{name}]
+      pokemon.moves.forEach((move, index) => { // Goes through the source pokemon's moves array
+        currentPokemon.movesAvailable.push({});
+        currentPokemon.movesAvailable[index].name = move.move.name;
+        currentPokemon.movesAvailable[index].url = move.move.url;
       })
 
       currentPokemon.movesEquipped = [] // Collection of moves the pokemon can use during combat
       for (let index = 0; index < Math.min(currentPokemon.movesAvailable.length, 4); index++) { // Loops though the quantity of moves available, capped at 4. (ie: Magikarp only knows 2, so dont go past 2, whereas others know 4+)
         const move = Math.floor(Math.random() * currentPokemon.movesAvailable.length); // Gets a random move from their possible moves
-        currentPokemon.movesEquipped.push(currentPokemon.movesAvailable[move]); // Add the move to their arsenol.
+        currentPokemon.movesEquipped.push({})
+        currentPokemon.movesEquipped[index].name = currentPokemon.movesAvailable[move].name;
+        currentPokemon.movesEquipped[index].url = currentPokemon.movesAvailable[move].url;
       }
+
+      currentPokemon.movesEquipped.forEach((move, index) => {
+        const searchParams = move.url.replace("https://pokeapi.co/api/v2/", "");
+        this.setMoveProps(fetchData(searchParams), currentPokemon, index);
+      })
 
       currentPokemon.abilitiesAvailable = [] // initiates the array
       pokemon.abilities.forEach((ability) => {  // For each ability in the ability array
@@ -100,9 +89,8 @@ const party = {
     } else {
       // PARTY IS FULL WARN THE USER
     }
-    console.log("Current Party:", this.currentParty);
+    await console.log("Current Party:", this.currentParty);
   },
-
 
   /**
    * Removes a pokemon from the current party. This selection is based on the name of the pokemon.
@@ -120,11 +108,84 @@ const party = {
     this.currentSize--;
   },
 
+  async setMoveProps(move, pokemon, index) {
+    move = await move;
 
+    pokemon.movesEquipped[index].name = move.name;
+
+    pokemon.movesEquipped[index].power = move.power;
+    pokemon.movesEquipped[index].pp = move.pp;
+    pokemon.movesEquipped[index].priority = move.priority;
+    pokemon.movesEquipped[index].accuracy = move.accuracy;
+    pokemon.movesEquipped[index].type = move.type.name;
+    pokemon.movesEquipped[index].damageClass = move.damage_class.name;
+
+    pokemon.movesEquipped[index].flavorText = move.flavor_text_entries[0].flavor_text.replaceAll("\n", " ").replaceAll("\f", "");
+
+    pokemon.movesEquipped[index].meta = move.meta;
+    pokemon.movesEquipped[index].stat_changes = move.stat_changes;
+  },
+
+  /**
+   * Tool to edit the properties of selected pokemon!
+   * @param {number} pokemon - Pokemon Index in the Current Party array
+   * @param {string} value - Value to change in the current property's string.
+   * @param {*} property - The property to be changed
+   * @param {*} propertyIndex - If an attack, which attack index?
+   */
+  async editPokemonProps(pokemon, value, property, propertyIndex) {
+    
+  }
 }
 
 
 
+
+
+
+
+
+// -------------------------------------
+// ------- PARTY PAGE GENERATION -------
+// -------------------------------------
+
+const togglePokemonDetails = (event) => {
+  event.parentElement.classList.toggle("open")
+}
+
+const savePartyChanges = () => {
+  console.log("savePartyChanges()")
+}
+
+/**
+ * 
+ * @param {string} property - The focus property for the modal
+ * @param {array} collection - The array of objects to populate the modal
+ */
+const generatePropertyModal = async (property, collection) => {
+  console.log("generate modal now");
+}
+
+
+
+
+/**
+ * 
+ * @param {number} pokemon - The party.currentParty index you are working with
+ * @param {string} property - The specific property you wish your change;
+ * @param {number} index - (OPTIONAL) The index for the selected property (ie: which equipped move was clicked)
+ */
+const changeProperty = async (pokemon, property, index) => {
+  console.clear();
+  console.log("Editing the pokemon:", party.currentParty[pokemon])
+  console.log("Editing the property:", property);
+  
+  if (index != null) {
+    console.log("Index:", index)
+    console.log("For the move:", party.currentParty[pokemon].movesEquipped[parseInt(index)]);
+  }
+  
+}
 
 
 
@@ -190,7 +251,7 @@ const togglePartyModal = () => {
 
 
 // ---------------------------------------
-// ------- POKEDEX CARD GENERATION -------
+// ------- POKEDEX PAGE GENERATION -------
 // ---------------------------------------
 
 function pokedexPartyRemove(index) {
@@ -934,15 +995,308 @@ const loadPokedexPage = () => {
 }
 
 /**
- * 
+ * Loads the Party Page based on the following skeleton structure:
+ *    <div id="party-main">
+
+        <div id="party-overview">
+          <div class="overview-card">
+            <img src="" alt="">
+            <h3>Name</h3>
+            <div class="type-container">
+              <p></p>
+              <p></p>
+            </div>
+          </div>
+        </div>
+
+        <div id="party-details">
+          <h1>Your Party</h1>
+          <ol id="party-details-list">
+            <li class="party-pokemon-containter open" id="1">
+              <div class="party-pokemon-overview">
+                <div class="party-pokemon-overview-left">
+                  <img src="" alt="">
+                  <p></p>
+                  <h3></h3>
+                </div>
+                <div class="party-pokemon-overview-right">
+                  <p></p>
+                  <p></p>
+                </div>
+              </div>
+               <div class="party-pokemon-details">
+                <div class="party-pokemon-traits">
+                  <h4>Nickname</h4>
+                  <input id="nickname" type="text" value="" class="party-pokemon-input">
+                  <h4>Ability</h4>
+                  <p class="party-pokemon-input"></p>
+                  <h4>Held Item</h4>
+                  <p class="party-pokemon-input item"></p>
+                </div>
+                <div class="party-pokemon-stats">
+                  <h4>Stats</h4>
+                </div>
+                <div class="party-pokemon-moves">
+                  <h4>Moves</h4>
+                  <p class="party-pokemon-input"></p>
+                  <p class="party-pokemon-input"></p>
+                  <p class="party-pokemon-input"></p>
+                  <p class="party-pokemon-input"></p>
+                </div>
+               </div>
+            </li>
+          </ol>
+        </div>
+      </div>
  */
 const loadPartyPage = () => {
 
+  const partyPage = document.getElementById("party");
 
+  const partyContainer = document.createElement("div");
+  partyContainer.id = "party-main";
+  partyPage.appendChild(partyContainer);
+
+  //  Party Overview
+
+  const partyOverview = document.createElement("div");
+  partyOverview.id = "party-overview";
+  partyContainer.appendChild(partyOverview);
+
+  party.currentParty.forEach((pokemon) => { // Create a card for each pokemon currently in the party
+    const pokeCard = document.createElement("div");
+    pokeCard.classList.add("overview-card");
+    partyOverview.appendChild(pokeCard);
+
+    const pokeImg = document.createElement("img");
+    pokeImg.setAttribute("src", pokemon.sprites.front_default);
+    pokeCard.appendChild(pokeImg);
+
+    const pokeName = document.createElement("h3");
+    pokeName.innerText = pokemon.name;
+    pokeCard.appendChild(pokeName);
+
+    const typeContainer = document.createElement("div");
+    typeContainer.classList.add("type-container");
+    pokeCard.appendChild(typeContainer);
+
+    pokemon.types.forEach((type) => {
+      const typeElement = document.createElement("p");
+      typeElement.classList.add(type);
+      typeElement.innerText = type;
+      typeContainer.appendChild(typeElement);
+    })
+  }) // Finished making party overview card
+
+  // Party Details
+
+  const partyDetails = document.createElement("article");
+  partyDetails.id = "party-details";
+  partyContainer.appendChild(partyDetails);
+
+  const partyDetailsHeader = document.createElement("div");
+  partyDetailsHeader.id = "party-details-header";
+  partyDetails.appendChild(partyDetailsHeader)
+
+  const partyDetailsTitle = document.createElement("h1");
+  partyDetailsTitle.innerText = "Your Party";
+  partyDetailsHeader.appendChild(partyDetailsTitle);
+
+  const saveButton = document.createElement("button");
+  saveButton.innerText = "Save Changes";
+  saveButton.addEventListener("click", () => { savePartyChanges() });
+  partyDetailsHeader.appendChild(saveButton);
+
+  const partyDetailsContainer = document.createElement("ol");
+  partyDetailsContainer.id = "party-details-list";
+  partyDetails.appendChild(partyDetailsContainer);
+
+  party.currentParty.forEach((pokemon, index) => { // Makes a list element for each pokemon in the party.
+
+    const pokemonContainer = document.createElement("li"); // The root element for the pokemon overview
+    pokemonContainer.classList.add("party-pokemon-container");
+    if (index === 0 ) { // Always have one pokemon details section open by default
+      pokemonContainer.classList.add("open");
+    }
+    partyDetailsContainer.appendChild(pokemonContainer);
+
+    // Pokemon Overview
+
+    const pokemonOverview = document.createElement("div");
+    pokemonOverview.classList.add("party-pokemon-overview");
+    pokemonOverview.addEventListener("click", (event) => { // When the user clicks the overview, toggle it to become bigger/smaller
+      togglePokemonDetails(event.currentTarget);
+    });
+    pokemonContainer.appendChild(pokemonOverview);
+    
+    const overviewLeft = document.createElement("div");
+    overviewLeft.classList.add("party-pokemon-overview-left");
+    pokemonOverview.appendChild(overviewLeft);
+
+    const overviewImg = document.createElement("img");
+    overviewImg.setAttribute("src", pokemon.sprites.front_default);
+    overviewLeft.appendChild(overviewImg);
+
+    const overviewNumber = document.createElement("p");
+    overviewNumber.innerText = `0${index+1}`
+    overviewLeft.appendChild(overviewNumber);
+
+    const overviewName = document.createElement("h3");
+    overviewName.innerText = pokemon.name;
+    overviewLeft.appendChild(overviewName);
+
+    const overviewRight = document.createElement("div");
+    overviewRight.classList.add("party-pokemon-overview-right");
+    pokemonOverview.appendChild(overviewRight);
+
+    pokemon.types.forEach((type) => { // Create a type element for each type within the pokemon object.
+      const typeElement = document.createElement("p");
+      typeElement.classList.add(type);
+      typeElement.innerText = type;
+      overviewRight.appendChild(typeElement);
+    })
+
+    // Pokemon Details
+
+    const detailsContainer = document.createElement("div");
+    detailsContainer.classList.add("party-pokemon-details");
+    pokemonContainer.appendChild(detailsContainer);
+
+    // Traits
+
+    const traitsContainer = document.createElement("div");
+    traitsContainer.classList.add("party-pokemon-traits");
+    detailsContainer.appendChild(traitsContainer);
+    
+    const traitNicknameLabel = document.createElement("h4");
+    traitNicknameLabel.innerText = "Nickname";
+    traitsContainer.appendChild(traitNicknameLabel);
+
+    const traitNickname = document.createElement("input");
+    traitNickname.setAttribute("value", pokemon.nickname);
+    traitNickname.classList.add("party-pokemon-input");
+    traitsContainer.appendChild(traitNickname);
+
+    const traitAbilityLabel = document.createElement("h4");
+    traitAbilityLabel.innerText = "Ability";
+    traitsContainer.appendChild(traitAbilityLabel);
+
+    const traitAbility = document.createElement("p");
+    traitAbility.classList.add("party-pokemon-input");
+    traitAbility.innerText = pokemon.abilityEquipped;
+    traitAbility.addEventListener("click", () => {
+      changeProperty(index, "ability");
+    });
+    traitsContainer.appendChild(traitAbility);
+
+    const traitItemLabel = document.createElement("h4");
+    traitItemLabel.innerText = "Held Item";
+    traitsContainer.appendChild(traitItemLabel);
+
+    const traitItem = document.createElement("p");
+    traitItem.classList.add("party-pokemon-input", "item");
+    if (pokemon.heldItem) {
+      traitItem.innerText = pokemon.heldItem;
+    } else {
+      traitItem.innerText = "---";
+    }
+    traitItem.addEventListener("click", () => {
+      changeProperty(index, "item");
+    })
+    traitsContainer.appendChild(traitItem);
+
+    // Stats
+
+    const statsSection = document.createElement("div");
+    statsSection.classList.add("party-pokemon-stats");
+    detailsContainer.appendChild(statsSection);
+
+    const statsHeader = document.createElement("h4");
+    statsHeader.innerText = "Stats";
+    statsSection.appendChild(statsHeader);
+
+    const statsContainer = document.createElement("div");
+    statsContainer.classList.add("modal-stats-container");
+    statsSection.appendChild(statsContainer);
+
+    pokemon.stats.forEach((stat) => { // In the pokemon obj, loop through each stat in the `stats key`.
+      const uniqueStatContainer = document.createElement("div");
+      uniqueStatContainer.classList.add("horizontal-stat-container");
+      statsContainer.appendChild(uniqueStatContainer);
+
+      const statName = document.createElement("p");
+      statName.classList.add("stat-name");
+      statName.innerText = stat.name;
+      uniqueStatContainer.appendChild(statName);
+
+      const statValue = document.createElement("p");
+      statValue.classList.add("stat-value");
+      statValue.innerText = stat.base_stat;
+      uniqueStatContainer.appendChild(statValue);
+
+      const statBarContainer = document.createElement("div");
+      statBarContainer.classList.add("stat-bar-container");
+      uniqueStatContainer.appendChild(statBarContainer);
+
+      const statBar = document.createElement("div");
+      statBar.classList.add("stat-bar");
+      statBar.style.width = `${Math.min((parseInt(stat.base_stat) / 250 * 100), 100)}%` // sets element width to a percentage of the estimated max stat possible, capped at 100%
+      statBarContainer.appendChild(statBar);
+    });
+
+    // Moves
+
+    const movesContainer = document.createElement("div");
+    movesContainer.classList.add("party-pokemon-moves");
+    detailsContainer.appendChild(movesContainer);
+
+    const movesHeader = document.createElement("h4");
+    movesHeader.innerText = "Moves";
+    movesContainer.appendChild(movesHeader);
+
+    for (let i = 0; i < pokemon.movesEquipped.length; i++) { // Creates the moves containers, for the amount of moves equiped.
+      const moveElement = document.createElement("p");
+      moveElement.classList.add("party-pokemon-input");
+      moveElement.innerText = pokemon.movesEquipped[i].name;
+      moveElement.addEventListener("click", () => {
+        changeProperty(index, "move", i)
+      });
+      movesContainer.appendChild(moveElement);
+    }
+    for (let i = 0; i < 4 - pokemon.movesEquipped.length; i++) { // Creates the remaining moves if there aren't 4 moves. already set.
+      const moveElement = document.createElement("p");
+      moveElement.classList.add("party-pokemon-input");
+      moveElement.innerText = "---";
+      moveElement.addEventListener("click", () => {
+        changeProperty(index, "move", i)
+      });
+      movesContainer.appendChild(moveElement);
+    }
+  })  // Finished making party list elements.
+
+  if (party.currentSize < party.maxSize) { // If there are still slots for pokemon
+    const pokemonAdd = document.createElement("button");
+    pokemonAdd.id = "add-pokemon"
+    pokemonAdd.innerText = "Add a Pokemon";
+    pokemonAdd.addEventListener("click", () => {
+      navUpdate("pokedex-nav");
+      updatePage("pokedex-nav")
+    })
+    partyDetailsContainer.appendChild(pokemonAdd);
+  }
 }
+
+
+
+
+
+
+
+
 
 const loadBattlePage = () => {
 }
+
 
 
 // ---------------------------------------
