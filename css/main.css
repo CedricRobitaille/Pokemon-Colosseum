@@ -1520,6 +1520,10 @@ search {
   transform: rotate(-45deg);
 }
 
+#inputSelected {
+  outline: 2px solid var(--poke-red);
+}
+
 .party-pokemon-traits h4 {
   padding-left: .5rem;
 }

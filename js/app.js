@@ -83,7 +83,7 @@ const party = {
     }
 
     if (this.currentSize < this.maxSize) {
-      setPokemonProperties (pokemon);
+      setPokemonProperties(pokemon);
       pokedexPartyAdd(pokemon)
       this.currentSize++;
     } else {
@@ -103,8 +103,8 @@ const party = {
     } else {
       this.currentParty = [];
     }
-    
-    console.log("Removed Pokemon.\nCurrent Party:",this.currentParty)
+
+    console.log("Removed Pokemon.\nCurrent Party:", this.currentParty)
     this.currentSize--;
   },
 
@@ -130,11 +130,11 @@ const party = {
    * Tool to edit the properties of selected pokemon!
    * @param {number} pokemon - Pokemon Index in the Current Party array
    * @param {string} value - Value to change in the current property's string.
-   * @param {*} property - The property to be changed
-   * @param {*} propertyIndex - If an attack, which attack index?
+   * @param {string} property - The property to be changed
+   * @param {number} propertyIndex - If an attack, which attack index?
    */
   async editPokemonProps(pokemon, value, property, propertyIndex) {
-    
+    console.log("Saving:", pokemon, value, property, propertyIndex)
   }
 }
 
@@ -153,17 +153,45 @@ const togglePokemonDetails = (event) => {
   event.parentElement.classList.toggle("open")
 }
 
+/**
+ * Upon clicking the `Save Changes` button,
+ * Passes properties and values to the party.editPokemonProps function
+ */
 const savePartyChanges = () => {
-  console.log("savePartyChanges()")
+  const partyDetailsContainer = document.querySelectorAll(".party-pokemon-container"); // Gets the container that holds all the pokemonDetails items
+
+  partyDetailsContainer.forEach((partyPokemon, index) => { // Iterate through every pokemon details element
+    const pokemonID = index;  // Set the party.currentParty pokemon array index
+
+    const traitsArray = partyPokemon.querySelectorAll(".party-pokemon-traits .party-pokemon-input"); // Gets all inputs under the traits container
+    traitsArray.forEach((trait) => { // Iterate through every pokemon property in the individual pokemon
+      const traitPropert = trait.getAttribute("property");  // Determines what the property of the input is
+      if (traitPropert === null) { // Nickname doesn't have a property
+        const value = trait.value;  // Gets the user-inputted value;
+        party.editPokemonProps(pokemonID, value, "nickname"); // Runs the function to set the properties on the party element
+      } else {  // Not a nickname, and not a move.
+        const value = trait.innerText;  // Gets the trait
+        party.editPokemonProps(pokemonID, value, "traitPropert"); // Runs the function to set the properties on the party element
+      }
+    });
+
+    const movesArray = partyPokemon.querySelectorAll(`[property="move"`); // Gets all move elements from their property
+    movesArray.forEach((move, moveIndex) => { // Iterate through every move
+      const value = move.innerText; // Set the move's current value;
+      party.editPokemonProps(pokemonID, value, "move", moveIndex); // Runs the function to set the properties on the party element
+    });
+  })
 }
 
 /**
  * 
  * @param {string} property - The focus property for the modal
- * @param {array} collection - The array of objects to populate the modal
+ * @param {array} pokemon - The party.currentPokemon index
  */
 const generatePropertyModal = async (property, collection) => {
-  console.log("generate modal now");
+  collection = await collection;
+  console.log("Modal for:", property);
+  console.log("Containing: ", collection)
 }
 
 
@@ -177,14 +205,43 @@ const generatePropertyModal = async (property, collection) => {
  */
 const changeProperty = async (pokemon, property, index) => {
   console.clear();
-  console.log("Editing the pokemon:", party.currentParty[pokemon])
-  console.log("Editing the property:", property);
-  
-  if (index != null) {
-    console.log("Index:", index)
-    console.log("For the move:", party.currentParty[pokemon].movesEquipped[parseInt(index)]);
+
+  const styleInputs = () => {
+    const currentPokemonElement = document.querySelectorAll(".party-pokemon-container");
+
+    // Remove the previously clicked element's clicked styling.
+    const previousProperty = document.getElementById("inputSelected");
+    if (previousProperty) {
+      if (previousProperty === currentPokemonElement[pokemon].querySelector(`[property="${property}"]`) && property != "move") { // If the user clicked the same property that's already enabled.
+        previousProperty.id = ""; // Remove the styling of the selected element
+        return; // KILL THE FUNCTION BECAUSE WE CLICKED THE SAME PROP
+      }
+      if (previousProperty.getAttribute("property") === "move") { // Since moves are indexed, we need to find check for the specific move
+        if (currentPokemonElement[pokemon].contains(previousProperty)) { // You are in the same parent element
+          const moveArray = currentPokemonElement[pokemon].querySelectorAll(`[property="move"`); // gets all move elements
+          if (previousProperty === moveArray[index]) { // the move at index is the same element as the previous
+            previousProperty.id = ""; // Remove the styling of the selected element
+            return; // KILL THE FUNCTION BECAUSE WE CLICKED THE SAME PROP
+          }
+        }
+      }
+      previousProperty.id = ""; // Remove the styling of the previous element
+    }
+
+    // Set styling on the clicked element
+    if (property === "move") {
+
+      const moveElementArray = currentPokemonElement[pokemon].querySelectorAll(`[property="move"]`)
+      moveElementArray[parseInt(index)].id = "inputSelected"
+    } else {
+      const selectedPropertElement = currentPokemonElement[pokemon].querySelector(`[property="${property}"]`);
+      selectedPropertElement.id = "inputSelected"
+    }
   }
   
+  let fetchParams = ""
+  generatePropertyModal(property, fetchData(fetchParams))
+
 }
 
 
@@ -1104,7 +1161,9 @@ const loadPartyPage = () => {
 
   const saveButton = document.createElement("button");
   saveButton.innerText = "Save Changes";
-  saveButton.addEventListener("click", () => { savePartyChanges() });
+  saveButton.addEventListener("click", () => {
+    savePartyChanges();
+  });
   partyDetailsHeader.appendChild(saveButton);
 
   const partyDetailsContainer = document.createElement("ol");
@@ -1115,7 +1174,7 @@ const loadPartyPage = () => {
 
     const pokemonContainer = document.createElement("li"); // The root element for the pokemon overview
     pokemonContainer.classList.add("party-pokemon-container");
-    if (index === 0 ) { // Always have one pokemon details section open by default
+    if (index === 0) { // Always have one pokemon details section open by default
       pokemonContainer.classList.add("open");
     }
     partyDetailsContainer.appendChild(pokemonContainer);
@@ -1128,7 +1187,7 @@ const loadPartyPage = () => {
       togglePokemonDetails(event.currentTarget);
     });
     pokemonContainer.appendChild(pokemonOverview);
-    
+
     const overviewLeft = document.createElement("div");
     overviewLeft.classList.add("party-pokemon-overview-left");
     pokemonOverview.appendChild(overviewLeft);
@@ -1138,7 +1197,7 @@ const loadPartyPage = () => {
     overviewLeft.appendChild(overviewImg);
 
     const overviewNumber = document.createElement("p");
-    overviewNumber.innerText = `0${index+1}`
+    overviewNumber.innerText = `0${index + 1}`
     overviewLeft.appendChild(overviewNumber);
 
     const overviewName = document.createElement("h3");
@@ -1167,7 +1226,7 @@ const loadPartyPage = () => {
     const traitsContainer = document.createElement("div");
     traitsContainer.classList.add("party-pokemon-traits");
     detailsContainer.appendChild(traitsContainer);
-    
+
     const traitNicknameLabel = document.createElement("h4");
     traitNicknameLabel.innerText = "Nickname";
     traitsContainer.appendChild(traitNicknameLabel);
@@ -1183,6 +1242,7 @@ const loadPartyPage = () => {
 
     const traitAbility = document.createElement("p");
     traitAbility.classList.add("party-pokemon-input");
+    traitAbility.setAttribute("property", "ability")
     traitAbility.innerText = pokemon.abilityEquipped;
     traitAbility.addEventListener("click", () => {
       changeProperty(index, "ability");
@@ -1194,6 +1254,7 @@ const loadPartyPage = () => {
     traitsContainer.appendChild(traitItemLabel);
 
     const traitItem = document.createElement("p");
+    traitItem.setAttribute("property", "held-item")
     traitItem.classList.add("party-pokemon-input", "item");
     if (pokemon.heldItem) {
       traitItem.innerText = pokemon.heldItem;
@@ -1201,7 +1262,7 @@ const loadPartyPage = () => {
       traitItem.innerText = "---";
     }
     traitItem.addEventListener("click", () => {
-      changeProperty(index, "item");
+      changeProperty(index, "held-item");
     })
     traitsContainer.appendChild(traitItem);
 
@@ -1257,6 +1318,7 @@ const loadPartyPage = () => {
     for (let i = 0; i < pokemon.movesEquipped.length; i++) { // Creates the moves containers, for the amount of moves equiped.
       const moveElement = document.createElement("p");
       moveElement.classList.add("party-pokemon-input");
+      moveElement.setAttribute("property", "move")
       moveElement.innerText = pokemon.movesEquipped[i].name;
       moveElement.addEventListener("click", () => {
         changeProperty(index, "move", i)
