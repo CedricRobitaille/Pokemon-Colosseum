@@ -183,15 +183,61 @@ const savePartyChanges = () => {
   })
 }
 
+const removePropertyModal = () => {
+  const party = document.getElementById("party");
+  const previousModal = document.getElementById("party-property-modal");
+  console.log("YES")
+  party.removeChild(previousModal);
+}
+
+const removePropertyStyling = () => {
+  const previousProperty = document.getElementById("inputSelected");
+  previousProperty.id = ""; // Remove the styling of the selected element
+}
+
 /**
  * 
  * @param {string} property - The focus property for the modal
  * @param {array} pokemon - The party.currentPokemon index
  */
 const generatePropertyModal = async (property, collection) => {
+  console.log("Uh oh")
   collection = await collection;
   console.log("Modal for:", property);
   console.log("Containing: ", collection)
+
+  const party = document.getElementById("party");
+
+  const previousModal = document.getElementById("party-property-modal");
+  if (previousModal) {
+    removePropertyModal();
+  }
+
+  const modal = document.createElement("article");
+  modal.id = "party-property-modal";
+  party.appendChild(modal);
+
+  const modalHeader = document.createElement("div");
+  modalHeader.classList.add("party-property-modal-header");
+  modal.appendChild(modalHeader);
+
+  const modalMinimize = document.createElement("button");
+  modalMinimize.classList.add("minimize-button");
+  modalMinimize.addEventListener("click", () => {
+    removePropertyStyling();
+    party.removeChild(modal);
+  })
+  modalHeader.appendChild(modalMinimize);
+
+  const modalTitle = document.createElement("h2")
+  modalTitle.innerText = property.replace("-", " ") + "s";
+  if (property === "ability") {
+    modalTitle.innerText = "Abilities";
+  } else {
+    modalTitle.innerText = property.replace("-", " ") + "s";
+  }
+  modalHeader.appendChild(modalTitle)
+
 }
 
 
@@ -213,19 +259,21 @@ const changeProperty = async (pokemon, property, index) => {
     const previousProperty = document.getElementById("inputSelected");
     if (previousProperty) {
       if (previousProperty === currentPokemonElement[pokemon].querySelector(`[property="${property}"]`) && property != "move") { // If the user clicked the same property that's already enabled.
-        previousProperty.id = ""; // Remove the styling of the selected element
-        return; // KILL THE FUNCTION BECAUSE WE CLICKED THE SAME PROP
+        removePropertyStyling();
+        removePropertyModal();
+        return false; // KILL THE FUNCTION BECAUSE WE CLICKED THE SAME PROP
       }
       if (previousProperty.getAttribute("property") === "move") { // Since moves are indexed, we need to find check for the specific move
         if (currentPokemonElement[pokemon].contains(previousProperty)) { // You are in the same parent element
           const moveArray = currentPokemonElement[pokemon].querySelectorAll(`[property="move"`); // gets all move elements
           if (previousProperty === moveArray[index]) { // the move at index is the same element as the previous
-            previousProperty.id = ""; // Remove the styling of the selected element
-            return; // KILL THE FUNCTION BECAUSE WE CLICKED THE SAME PROP
+            removePropertyStyling()
+            removePropertyModal();
+            return false; // KILL THE FUNCTION BECAUSE WE CLICKED THE SAME PROP
           }
         }
       }
-      previousProperty.id = ""; // Remove the styling of the previous element
+      removePropertyStyling();
     }
 
     // Set styling on the clicked element
@@ -237,10 +285,23 @@ const changeProperty = async (pokemon, property, index) => {
       const selectedPropertElement = currentPokemonElement[pokemon].querySelector(`[property="${property}"]`);
       selectedPropertElement.id = "inputSelected"
     }
+    return true;
+  }
+
+  const styleInputsReturn = styleInputs();
+  
+  if (styleInputsReturn) { // If the style inputs function returns false, dont do (ie: the previous clicked element was clicked again)
+    if (property === "ability") {
+      generatePropertyModal(property, party.currentParty[pokemon].abilitiesAvailable);
+    } else if (property === "held-item") {
+      offset = 0;
+      generatePropertyModal(property, fetchData("item"));
+    } else {
+      generatePropertyModal(property, party.currentParty[pokemon].movesAvailable);
+    }
   }
   
-  let fetchParams = ""
-  generatePropertyModal(property, fetchData(fetchParams))
+  
 
 }
 

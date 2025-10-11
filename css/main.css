@@ -1593,6 +1593,69 @@ search {
 
 
 
+/* ----------- */
+/* MODAL */
+/* ----------- */
+
+#party-property-modal {
+  width: 100%;
+  max-width: 26rem;
+  height: fit-content;
+  
+  background-color: var(--white);
+  
+  border-radius: 24px;
+  box-shadow: 0px 8px 24px -4px var(--drop-shadow);
+}
+
+.party-property-modal-header {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  min-width: 22rem;
+  padding: .75rem 1rem;
+}
+
+.minimize-button {
+  position: absolute;
+  left: 1.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
+  background-color: transparent;
+  border: none;
+  transform: rotate(45deg);
+  cursor: pointer;
+}
+
+.minimize-button::before {
+  content: "";
+
+  position: absolute;
+  display: block;
+  height: .75rem;
+  width: .75rem;
+  top: 0rem;
+  left: .5rem;
+  border-left: 3px solid var(--grey);
+  border-bottom: 3px solid var(--grey);
+  transition: .25s;
+}
+
+.minimize-button:hover::before {
+  border-color: var(--black);
+  top: .25rem;
+  left: .25rem;
+}
+
+.party-property-modal-header h2 {
+  width: 100%;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+
 
 
 /* IMPORANTS */
