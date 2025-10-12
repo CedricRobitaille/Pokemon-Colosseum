@@ -191,8 +191,6 @@ const togglePropertyDetails = async (event) => {
         }
         break;
 
-
-
       case "held-item":
         console.log(propertyContainer.id)
         propertyDetails.classList.add("modal-item-container");
@@ -212,15 +210,108 @@ const togglePropertyDetails = async (event) => {
             const outputString = item.effect_entries[index].effect;
             propertyText.innerText = outputString.replace("\n:", ":\n");
             propertyDetails.appendChild(propertyText);
+            break;
           }
         }
 
         console.log(item)
         break;
 
-
-
       case "move":
+        propertyDetails.classList.add("modal-move-container");
+        const move = await fetchData(`move/${propertyContainer.id}`)
+        console.log(move)
+
+        // TYPES
+
+        const typeContainer = document.createElement("div");
+        typeContainer.classList.add("type-container");
+        propertyDetails.appendChild(typeContainer);
+
+        const type = document.createElement("p");
+        type.id = move.type.name;
+        type.innerText = move.type.name;
+        typeContainer.appendChild(type);
+
+        const classType = document.createElement("p");
+        classType.id = move.damage_class.name;
+        classType.innerText = move.damage_class.name;
+        typeContainer.appendChild(classType);
+
+        // STATS
+
+        const statContainer = document.createElement("div");
+        statContainer.classList.add("party-move-stat-container");
+        propertyDetails.appendChild(statContainer);
+
+        const powerContainer  = document.createElement("div")
+        powerContainer.classList.add("party-move-stat-container-inner");
+        statContainer.appendChild(powerContainer);
+
+        const powerTitle = document.createElement("h5");
+        powerTitle.innerText = "Power";
+        powerContainer.appendChild(powerTitle);
+
+        const powerValue = document.createElement("p");
+        let powerVal = move.power;
+        if (!powerVal) {
+          powerVal = "---"
+        }
+        powerValue.innerText = powerVal;
+        powerContainer.appendChild(powerValue);
+
+        const ppContainer = document.createElement("div")
+        ppContainer.classList.add("party-move-stat-container-inner");
+        statContainer.appendChild(ppContainer);
+
+        const ppTitle = document.createElement("h5");
+        ppTitle.innerText = "PP";
+        ppContainer.appendChild(ppTitle);
+
+        const ppValue = document.createElement("p");
+        let ppVal = move.pp;
+        if (!ppVal) {
+          ppVal = "---"
+        }
+        ppValue.innerText = ppVal;
+        ppContainer.appendChild(ppValue);
+
+        const priorityContainer = document.createElement("div")
+        priorityContainer.classList.add("party-move-stat-container-inner");
+        statContainer.appendChild(priorityContainer);
+
+        const priorityTitle = document.createElement("h5");
+        priorityTitle.innerText = "Priority";
+        priorityContainer.appendChild(priorityTitle);
+
+        const priorityValue = document.createElement("p");
+        let priorityVal = move.priority;
+        if (!priorityVal) {
+          priorityVal = "---"
+        }
+        priorityValue.innerText = priorityVal;
+        priorityContainer.appendChild(priorityValue);
+
+        // DESCRIPTION
+
+        const descriptionContainter = document.createElement("div");
+        descriptionContainter.classList.add("party-move-description");
+        propertyDetails.appendChild(descriptionContainter)
+
+        const moveTitle = document.createElement("h5");
+        moveTitle.innerText = "Description:"
+        descriptionContainter.appendChild(moveTitle);
+
+        for (let index = 0; index < move.flavor_text_entries.length; index++) {
+          if (move.flavor_text_entries[index].language.name === "en") {
+            const propertyText = document.createElement("p");
+            const outputString = move.flavor_text_entries[index].flavor_text;
+            propertyText.innerText = outputString.replaceAll("\n ", " ").replaceAll("\n", " ");
+            descriptionContainter.appendChild(propertyText);
+            break;
+          }
+        }
+
         break;
     }
 
