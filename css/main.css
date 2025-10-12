@@ -1677,6 +1677,7 @@ search {
 .property-collection-container {
   position: relative;
   overflow-y: scroll;
+  min-height: calc(100vh - 26rem);
   max-height: calc(100vh - 18rem);
 }
 

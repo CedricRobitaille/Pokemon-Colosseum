@@ -113,6 +113,7 @@ const party = {
 
   async setMoveProps(move, pokemon, index) {
     move = await move;
+    console.log("MOVE:", pokemon)
 
     pokemon.movesEquipped[index].name = move.name;
 
@@ -138,6 +139,18 @@ const party = {
    */
   async editPokemonProps(pokemon, value, property, propertyIndex) {
     console.log("Saving:", pokemon, value, property, propertyIndex)
+    if (property === "move") {
+      this.setMoveProps(fetchData(`move/${value}`), this.currentParty[pokemon], propertyIndex);
+    } else if (property === "held-item") {
+      this.currentParty[pokemon].heldItem = value;
+    } else if (property === "ability") {
+      const ability = await fetchData(`ability/${value}`)
+      this.currentParty[pokemon].abilityEquipped.name = ability.name;
+      this.currentParty[pokemon].abilityEquipped.url = `https://pokeapi.co/api/v2/ability/${ability.id}`;
+    } else {
+      this.currentParty[pokemon].nickname = value;
+    }
+    // console.log(property)
   }
 }
 
@@ -244,7 +257,7 @@ const togglePropertyDetails = async (event) => {
         statContainer.classList.add("party-move-stat-container");
         propertyDetails.appendChild(statContainer);
 
-        const powerContainer  = document.createElement("div")
+        const powerContainer = document.createElement("div")
         powerContainer.classList.add("party-move-stat-container-inner");
         statContainer.appendChild(powerContainer);
 
@@ -333,7 +346,6 @@ const togglePropertyDetails = async (event) => {
   }
 }
 
-
 const createUndefinedPropertySet = async (property) => {
   const dataSet = await fetchData(property);
 
@@ -358,9 +370,8 @@ const createUndefinedPropertySet = async (property) => {
     itemHeader.appendChild(itemTitle);
   })
 
-  
-}
 
+}
 
 const togglePokemonDetails = (event) => {
   event.parentElement.classList.toggle("open")
@@ -373,7 +384,7 @@ const togglePokemonDetails = (event) => {
 const savePartyChanges = () => {
   const partyDetailsContainer = document.querySelectorAll(".party-pokemon-container"); // Gets the container that holds all the pokemonDetails items
 
-  partyDetailsContainer.forEach((partyPokemon, index) => { // Iterate through every pokemon details element
+  partyDetailsContainer.forEach(async (partyPokemon, index) => { // Iterate through every pokemon details element
     const pokemonID = index;  // Set the party.currentParty pokemon array index
 
     const traitsArray = partyPokemon.querySelectorAll(".party-pokemon-traits .party-pokemon-input"); // Gets all inputs under the traits container
@@ -384,7 +395,7 @@ const savePartyChanges = () => {
         party.editPokemonProps(pokemonID, value, "nickname"); // Runs the function to set the properties on the party element
       } else {  // Not a nickname, and not a move.
         const value = trait.innerText;  // Gets the trait
-        party.editPokemonProps(pokemonID, value, "traitPropert"); // Runs the function to set the properties on the party element
+        party.editPokemonProps(pokemonID, value, traitPropert); // Runs the function to set the properties on the party element
       }
     });
 
@@ -394,6 +405,8 @@ const savePartyChanges = () => {
       party.editPokemonProps(pokemonID, value, "move", moveIndex); // Runs the function to set the properties on the party element
     });
   })
+
+  console.log(party.currentParty);
 }
 
 const removePropertyModal = () => {
@@ -415,8 +428,6 @@ const removePropertyStyling = () => {
  */
 const generatePropertyModal = async (property, collection) => {
   collection = await collection;
-  console.log("Modal for:", property);
-  console.log("Containing: ", collection)
 
   // Setup
 
@@ -520,12 +531,9 @@ const generatePropertyModal = async (property, collection) => {
     paginationContainer.appendChild(nextPage);
   }
 
-  
+
 
 }
-
-
-
 
 /**
  * 
@@ -573,7 +581,7 @@ const changeProperty = async (pokemon, property, index) => {
   }
 
   const styleInputsReturn = styleInputs();
-  
+
   if (styleInputsReturn) { // If the style inputs function returns false, dont do (ie: the previous clicked element was clicked again)
     if (property === "ability") {
       generatePropertyModal(property, party.currentParty[pokemon].abilitiesAvailable);
@@ -584,8 +592,8 @@ const changeProperty = async (pokemon, property, index) => {
       generatePropertyModal(property, party.currentParty[pokemon].movesAvailable);
     }
   }
-  
-  
+
+
 
 }
 
