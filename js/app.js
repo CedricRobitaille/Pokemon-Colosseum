@@ -358,12 +358,24 @@ const gymLeader = {
 
 
 
+// -------------------------------------
+// -------- BATTLE PAGE ACTIONS --------
+// -------------------------------------
+
+const battleMoveSelect = (event) => {
+  console.log(event);
+}
+
+const battleTeamSwap = (event) => {
+  console.log(event);
+}
+
 
 
 
 
 // -------------------------------------
-// ------- PARTY PAGE GENERATION -------
+// -------- PARTY PAGE ACTIONS ---------
 // -------------------------------------
 
 
@@ -1923,20 +1935,231 @@ const loadBattlePage = () => {
   fightPanel.id = "fight-panel";
   battleLeftColumn.appendChild(fightPanel);
 
-  // Fight Stat Panels
+  // Fight Elements
+  const fightingPokemon = ["trainer", "leader"];
+  fightingPokemon.forEach((whoIS) => {
 
-  const enemyStatPanel = document.createElement("div");
-  enemyStatPanel.id = "battle-enemy-stats";
-  fightPanel.appendChild(enemyStatPanel);
+    // Fight Stat Bars
+    let pokemon = null;
+    if (whoIS === "trainer") { 
+      pokemon = party.currentParty[0];
+    } else {
+      pokemon = gymLeader.party[0];
+    }
+    console.log(pokemon);
 
-  const enemyStatDetails = document.createElement("div");
-  enemyStatDetails.classList.add("battle-pokemon-details");
-  enemyStatPanel.appendChild(enemyStatDetails);
+    const statPanel = document.createElement("div");
+    statPanel.id = `battle-${whoIS}-stats`;
+    statPanel.classList.add("battle-stat-panel");
+    fightPanel.appendChild(statPanel);
 
-  const enemyCurrentName = document.createElement("h3");
-  enemyCurrentName.innerText = 
+    const statDetails = document.createElement("div");
+    statDetails.classList.add("battle-pokemon-details");
+    statPanel.appendChild(statDetails);
 
+    const currentName = document.createElement("h3");
+    currentName.innerText = pokemon.name;
+    statDetails.appendChild(currentName);
+
+    const health = document.createElement("p");
+    health.id = `${whoIS}-health`;
+    health.innerText = `${pokemon.stats[0].base_stat}/${pokemon.stats[0].base_stat}`
+    statDetails.appendChild(health);
+
+    const healthBarContainer = document.createElement("div");
+    healthBarContainer.classList.add("health-bar-container")
+    statPanel.appendChild(healthBarContainer);
+
+    const healthBar = document.createElement("div");
+    healthBar.id = `${whoIS}-health-bar`;
+    healthBar.style.width = "100%";
+    healthBarContainer.appendChild(healthBar);
+
+    // Fight Pokemon
+
+    const pokemonDisplay = document.createElement("div");
+    pokemonDisplay.id = `${whoIS}-battle-display`;
+    pokemonDisplay.classList.add("battle-pokemon-display")
+    fightPanel.appendChild(pokemonDisplay);
+
+    const pokemonDisplaySprite = document.createElement("img");
+    if (whoIS === "trainer") {
+      pokemonDisplaySprite.setAttribute("src", pokemon.sprites.back_default);
+    } else {
+      pokemonDisplaySprite.setAttribute("src", pokemon.sprites.front_default);
+    }
+    pokemonDisplay.appendChild(pokemonDisplaySprite);
+  })
+
+  // Team Panel
+
+  const teamPanel = document.createElement("div");
+  teamPanel.classList.add("battle-team-panel");
+  battleLeftColumn.appendChild(teamPanel);
+
+  const teamPanelHeader = document.createElement("h2")
+  teamPanelHeader.innerText = "Change Pokemon";
+  teamPanel.appendChild(teamPanelHeader);
+
+  // Team List
+
+  const teamList = document.createElement("ol");
+  teamList.id = "battle-team-list";
+  teamPanel.appendChild(teamList);
+
+  // Team Like Pokemon Elements
+
+  party.currentParty.forEach((pokemon) => { // For each pokemon within the party
+
+    const teamListElement = document.createElement("li");
+    teamListElement.id = pokemon.name;
+    teamListElement.addEventListener("click", (event) => {
+      battleTeamSwap(event);
+    });
+    teamList.appendChild(teamListElement);
+
+    const listElementSprite = document.createElement("img");
+    listElementSprite.setAttribute("src", pokemon.sprites.front_default);
+    teamListElement.appendChild(listElementSprite);
+
+    const listElementName = document.createElement("h3");
+    listElementName.innerText = pokemon.name;
+    teamListElement.appendChild(listElementName)
+
+    const listElementTypes = document.createElement("div");
+    listElementTypes.classList.add("type-container");
+    teamListElement.appendChild(listElementTypes);
+
+    pokemon.types.forEach((type) => {
+      const listElementType = document.createElement("p");
+      listElementType.classList.add(type);
+      listElementType.innerText = type;
+      listElementTypes.appendChild(listElementType);
+    });
+  });
+
+  // Move Container
+
+  const moveContainer = document.createElement("div");
+  moveContainer.classList.add("battle-container-move-column");
+  battleContainer.appendChild(moveContainer);
+
+  // Move Modal Header
+
+  const moveContainerHeader = document.createElement("h2")
+  moveContainerHeader.innerText = "Moves";
+  moveContainer.appendChild(moveContainerHeader);
+
+  // Move List Container
   
+  const moveListContainer = document.createElement("ol");
+  moveListContainer.classList.add("battle-moves-container");
+  moveContainer.appendChild(moveListContainer);
+
+  // Move Element
+  party.currentParty[0].movesEquipped.forEach((move) => {
+
+    const moveElement = document.createElement("li");
+    moveElement.id = move.name;
+    moveElement.classList.add("battle-move");
+    moveElement.addEventListener("click", (event) => {
+      battleMoveSelect(event);
+    });
+    moveListContainer.appendChild(moveElement);
+
+    // Move Header
+
+    const moveHeaderContainer = document.createElement("div");
+    moveHeaderContainer.classList.add("battle-move-inner-header");
+    moveElement.appendChild(moveHeaderContainer);
+
+    const moveHeader = document.createElement("h3");
+    moveHeader.innerText = move.name;
+    moveHeaderContainer.appendChild(moveHeader);
+
+    const movePP = document.createElement("p");
+    movePP.classList.add("battle-move-pp");
+    let ppVal = move.pp;
+    if (!ppVal) {
+      ppVal = "---"
+    }
+    movePP.innerText = `${ppVal}/${ppVal}`
+    moveHeaderContainer.appendChild(movePP);
+
+    // Move Details
+
+    const moveDetails = document.createElement("div");
+    moveDetails.classList.add("battle-move-details-container")
+    moveElement.appendChild(moveDetails);
+
+    const moveStatsContainer = document.createElement("div");
+    moveStatsContainer.classList.add("battle-move-stats");
+    moveDetails.appendChild(moveStatsContainer);
+
+    // Move Power
+
+    const movePowerContainer = document.createElement("div");
+    movePowerContainer.classList.add("battle-move-stat");
+    moveStatsContainer.appendChild(movePowerContainer);
+
+    const movePowerTitle = document.createElement("h5");
+    movePowerTitle.innerText = "Power";
+    movePowerContainer.appendChild(movePowerTitle);
+
+    const movePowerValue = document.createElement("p");
+    let powerVal = move.power;
+    if (!powerVal) {
+      powerVal = "---"
+    }
+    movePowerValue.innerText = powerVal;
+    movePowerContainer.appendChild(movePowerValue);
+
+    // Move Accuracy
+
+    const moveAccuracyContainer = document.createElement("div");
+    moveAccuracyContainer.classList.add("battle-move-stat");
+    moveStatsContainer.appendChild(moveAccuracyContainer);
+
+    const moveAccuracyTitle = document.createElement("h5");
+    moveAccuracyTitle.innerText = "Accuracy";
+    moveAccuracyContainer.appendChild(moveAccuracyTitle);
+
+    const moveAccuracyValue = document.createElement("p");
+    let accuracyVal = move.accuracy;
+    if (!accuracyVal) {
+      accuracyVal = "---"
+    }
+    moveAccuracyValue.innerText = accuracyVal;
+    moveAccuracyContainer.appendChild(moveAccuracyValue);
+    
+    // Move Properties
+
+    const moveProperties = document.createElement("div");
+    moveProperties.classList.add("battle-move-properties");
+    moveDetails.appendChild(moveProperties);
+
+    // ==== Give this the flavor text when added ================================= 
+    const moveFlavorText = document.createElement("p");
+    moveFlavorText.innerText = "lorem ipsum"
+    moveProperties.appendChild(moveFlavorText);
+    // ==== Give this the flavor text when added =================================
+
+    const moveTypesContainer = document.createElement("div");
+    moveTypesContainer.classList.add("battle-move-types");
+    moveProperties.appendChild(moveTypesContainer);
+
+    const moveType = document.createElement("p");
+    moveType.classList.add(move.type);
+    moveType.innerText = move.type;
+    moveTypesContainer.appendChild(moveType);
+
+    const moveClass = document.createElement("p");
+    moveClass.classList.add(move.damageClass);
+    moveClass.innerText = move.damageClass;
+    moveTypesContainer.appendChild(moveClass);
+  })
+
+
 }
 
 
@@ -2003,6 +2226,8 @@ const updatePage = (navID) => {
       break;
 
     case "battle-nav":
+      const battlePage = document.getElementById("battle");
+      battlePage.classList.remove("hidden");
       loadBattlePage();
       break;
   }
