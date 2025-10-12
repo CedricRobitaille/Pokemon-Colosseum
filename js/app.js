@@ -70,8 +70,11 @@ const party = {
       })
 
       currentPokemon.abilitiesAvailable = [] // initiates the array
-      pokemon.abilities.forEach((ability) => {  // For each ability in the ability array
-        currentPokemon.abilitiesAvailable.push(ability.ability.name); // Sets the element to the ability name. Can use the name for the API call.
+      pokemon.abilities.forEach((ability, index) => {  // For each ability in the ability array
+        currentPokemon.abilitiesAvailable.push({});
+        currentPokemon.abilitiesAvailable[index].name = ability.ability.name;
+        currentPokemon.abilitiesAvailable[index].url = ability.ability.url;
+        // currentPokemon.abilitiesAvailable.push(ability.ability.name); // Sets the element to the ability name. Can use the name for the API call.
       })
 
       const randomAbilityIndex = Math.floor(Math.random() * currentPokemon.abilitiesAvailable.length);
@@ -149,6 +152,125 @@ const party = {
 // ------- PARTY PAGE GENERATION -------
 // -------------------------------------
 
+
+
+const togglePropertyDetails = async (event) => {
+  const propertyContainer = event.parentNode;
+  const propertyType = document.getElementById("party-property-modal").classList[0];
+  console.log(propertyContainer);
+
+  if (propertyContainer.classList.contains("openProperty")) {
+    propertyContainer.classList.remove("openProperty");
+    return;
+  }
+
+  propertyContainer.classList.add("openProperty");
+
+  const openedBeforeChecker = propertyContainer.querySelector(".property-item-details-container");
+  if (!openedBeforeChecker) { // The details have NOT been generated before, so let's make them!
+
+    const propertyDetails = document.createElement("div");
+    propertyDetails.classList.add("property-item-details-container");
+    propertyContainer.appendChild(propertyDetails);
+
+    switch (propertyType) {
+      case "ability":
+        propertyDetails.classList.add("modal-ability-container");
+        const ability = await fetchData(`ability/${propertyContainer.id}`)
+
+        const abilityTitle = document.createElement("h5");
+        abilityTitle.innerText = "Description:"
+        propertyDetails.appendChild(abilityTitle);
+
+        for (let index = 0; index < ability.effect_entries.length; index++) {
+          if (ability.effect_entries[index].language.name === "en") {
+            const propertyText = document.createElement("p");
+            propertyText.innerText = ability.effect_entries[index].effect;
+            propertyDetails.appendChild(propertyText);
+          }
+        }
+        break;
+
+
+
+      case "held-item":
+        console.log(propertyContainer.id)
+        propertyDetails.classList.add("modal-item-container");
+        const item = await fetchData(`item/${propertyContainer.id}`);
+
+        const sprite = document.createElement("img");
+        sprite.setAttribute("src", item.sprites.default);
+        propertyDetails.appendChild(sprite);
+
+        const itemTitle = document.createElement("h5");
+        itemTitle.innerText = "Description:"
+        propertyDetails.appendChild(itemTitle);
+
+        for (let index = 0; index < item.effect_entries.length; index++) {
+          if (item.effect_entries[index].language.name === "en") {
+            const propertyText = document.createElement("p");
+            const outputString = item.effect_entries[index].effect;
+            propertyText.innerText = outputString.replace("\n:", ":\n");
+            propertyDetails.appendChild(propertyText);
+          }
+        }
+
+        console.log(item)
+        break;
+
+
+
+      case "move":
+        break;
+    }
+
+    // Button to swap prop
+
+    const swapPropertyButton = document.createElement("button");
+    swapPropertyButton.classList.add("swap-property-button");
+    if (propertyType === "ability") {
+      swapPropertyButton.innerText = `Add Ability`
+    } else if (propertyType === "move") {
+      swapPropertyButton.innerText = `Add Move`
+    } else {
+      swapPropertyButton.innerText = `Add Item`
+    }
+    swapPropertyButton.addEventListener("click", () => {
+      document.getElementById("inputSelected").innerText = propertyContainer.id;
+    });
+    propertyContainer.appendChild(swapPropertyButton);
+  }
+}
+
+
+const createUndefinedPropertySet = async (property) => {
+  const dataSet = await fetchData(property);
+
+  const itemContainerSet = document.getElementById("property-set-container")
+  itemContainerSet.innerHTML = ""; // Empties the container.
+
+  dataSet.results.forEach((item) => {
+    const itemContainer = document.createElement("div");
+    itemContainer.classList.add("item-set-container");
+    itemContainer.id = item.name;
+    itemContainerSet.appendChild(itemContainer);
+
+    const itemHeader = document.createElement("div");
+    itemHeader.classList.add("property-item-header");
+    itemHeader.addEventListener("click", (event) => {
+      togglePropertyDetails(event.currentTarget);
+    });
+    itemContainer.appendChild(itemHeader);
+
+    const itemTitle = document.createElement("h4");
+    itemTitle.innerText = item.name.replace("-", " ");
+    itemHeader.appendChild(itemTitle);
+  })
+
+  
+}
+
+
 const togglePokemonDetails = (event) => {
   event.parentElement.classList.toggle("open")
 }
@@ -201,10 +323,11 @@ const removePropertyStyling = () => {
  * @param {array} pokemon - The party.currentPokemon index
  */
 const generatePropertyModal = async (property, collection) => {
-  console.log("Uh oh")
   collection = await collection;
   console.log("Modal for:", property);
   console.log("Containing: ", collection)
+
+  // Setup
 
   const party = document.getElementById("party");
 
@@ -213,8 +336,11 @@ const generatePropertyModal = async (property, collection) => {
     removePropertyModal();
   }
 
+  // Modal Header Creation
+
   const modal = document.createElement("article");
   modal.id = "party-property-modal";
+  modal.classList.add(property);
   party.appendChild(modal);
 
   const modalHeader = document.createElement("div");
@@ -237,6 +363,73 @@ const generatePropertyModal = async (property, collection) => {
     modalTitle.innerText = property.replace("-", " ") + "s";
   }
   modalHeader.appendChild(modalTitle)
+
+  // Modal Contents
+
+  const propertyCollectionContainer = document.createElement("ol");
+  propertyCollectionContainer.classList.add("property-collection-container");
+  modal.appendChild(propertyCollectionContainer);
+
+  if (collection) { // For properties who have a set collection (NOT ITEMS)
+    collection.forEach((item) => {
+      const itemContainer = document.createElement("li");
+      itemContainer.classList.add("property-item-container");
+      itemContainer.id = item.name;
+      propertyCollectionContainer.appendChild(itemContainer);
+
+      const itemHeader = document.createElement("div");
+      itemHeader.classList.add("property-item-header");
+      itemHeader.addEventListener("click", (event) => {
+        togglePropertyDetails(event.currentTarget);
+      });
+      itemContainer.appendChild(itemHeader);
+
+      const itemTitle = document.createElement("h4");
+      itemTitle.innerText = item.name;
+      itemHeader.appendChild(itemTitle);
+    })
+  } else { // No set collection: IE: ITEMS where we need to keep fetching data
+    if (property === "held-item") {
+      property = "item"
+    }
+    offset = 0;
+    const propertySetContainer = document.createElement("div"); // Container that holds the dataset
+    propertySetContainer.id = "property-set-container"
+    propertyCollectionContainer.appendChild(propertySetContainer);
+
+    createUndefinedPropertySet(property); // Function to fetch new dataset, and place in the modal
+
+    const paginationMax = await fetchData("item");
+    const paginationContainer = document.createElement("div");
+    paginationContainer.classList.add("pagination-container");
+    propertyCollectionContainer.appendChild(paginationContainer);
+
+    const previousPage = document.createElement("button");
+    previousPage.id = "previous-page";
+    previousPage.classList.add("pagination-button");
+    previousPage.innerText = "Previous";
+    previousPage.addEventListener("click", () => {
+      if (offset >= 15) {
+        offset -= 15;
+        createUndefinedPropertySet(property)
+      }
+    });
+    paginationContainer.appendChild(previousPage);
+
+    const nextPage = document.createElement("button");
+    nextPage.id = "next-page";
+    nextPage.classList.add("pagination-button");
+    nextPage.innerText = "Next";
+    nextPage.addEventListener("click", () => {
+      if (offset < paginationMax.count - 14) {
+        offset += 15;
+        createUndefinedPropertySet(property);
+      }
+    });
+    paginationContainer.appendChild(nextPage);
+  }
+
+  
 
 }
 
@@ -295,7 +488,7 @@ const changeProperty = async (pokemon, property, index) => {
       generatePropertyModal(property, party.currentParty[pokemon].abilitiesAvailable);
     } else if (property === "held-item") {
       offset = 0;
-      generatePropertyModal(property, fetchData("item"));
+      generatePropertyModal(property);
     } else {
       generatePropertyModal(property, party.currentParty[pokemon].movesAvailable);
     }
@@ -1304,7 +1497,7 @@ const loadPartyPage = () => {
     const traitAbility = document.createElement("p");
     traitAbility.classList.add("party-pokemon-input");
     traitAbility.setAttribute("property", "ability")
-    traitAbility.innerText = pokemon.abilityEquipped;
+    traitAbility.innerText = pokemon.abilityEquipped.name;
     traitAbility.addEventListener("click", () => {
       changeProperty(index, "ability");
     });
