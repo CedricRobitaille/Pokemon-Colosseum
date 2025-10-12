@@ -155,6 +155,207 @@ const party = {
 }
 
 
+const gymLeader = {
+  name: "Frank",
+  type: "Fire",
+  party: [
+    {
+      name: "ivysaur",
+      nickname: "Ivysaur",
+      sprites: {
+        back_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/2.png",
+        back_shiny: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/2.png",
+        front_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png",
+        front_shiny: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/2.png"
+      },
+      types: [
+        "grass",
+        "poison"
+      ],
+      stats: [
+        {
+          name: "hp",
+          base_stat: 60
+        },
+        {
+          name: "attack",
+          base_stat: 62
+        },
+        {
+          name: "defense",
+          base_stat: 63
+        },
+        {
+          name: "special-attack",
+          base_stat: 80
+        },
+        {
+          name: "special-defense",
+          base_stat: 80
+        },
+        {
+          name: "speed",
+          base_stat: 60
+        }
+      ],
+      movesEquipped: [
+        {
+          name: "charm",
+          url: "https://pokeapi.co/api/v2/move/204/",
+          power: null,
+          pp: 20,
+          priority: 0,
+          accuracy: 100,
+          type: "fairy",
+          damageClass: "status",
+          flavorText: "Sharply lowers the foe's ATTACK.",
+          meta: {
+            ailment: {
+              name: "none",
+              url: "https://pokeapi.co/api/v2/move-ailment/0/"
+            },
+            ailment_chance: 0,
+            category: {
+              name: "net-good-stats",
+              url: "https://pokeapi.co/api/v2/move-category/2/"
+            },
+            crit_rate: 0,
+            drain: 0,
+            flinch_chance: 0,
+            healing: 0,
+            max_hits: null,
+            max_turns: null,
+            min_hits: null,
+            min_turns: null,
+            stat_chance: 0
+          },
+          stat_changes: [
+            {
+              change: -2,
+              stat: {
+                name: "attack",
+                url: "https://pokeapi.co/api/v2/stat/2/"
+              }
+            }
+          ]
+        },
+        {
+          name: "take-down",
+          url: "https://pokeapi.co/api/v2/move/36/",
+          power: 90,
+          pp: 20,
+          priority: 0,
+          accuracy: 85,
+          type: "normal",
+          damageClass: "physical",
+          flavorText: "A tackle that also hurts the user.",
+          meta: {
+            ailment: {
+              name: "none",
+              url: "https://pokeapi.co/api/v2/move-ailment/0/"
+            },
+            ailment_chance: 0,
+            category: {
+              name: "damage",
+              url: "https://pokeapi.co/api/v2/move-category/0/"
+            },
+            crit_rate: 0,
+            drain: -25,
+            flinch_chance: 0,
+            healing: 0,
+            max_hits: null,
+            max_turns: null,
+            min_hits: null,
+            min_turns: null,
+            stat_chance: 0
+          },
+          stat_changes: []
+        },
+        {
+          name: "weather-ball",
+          url: "https://pokeapi.co/api/v2/move/311/",
+          power: 50,
+          pp: 10,
+          priority: 0,
+          accuracy: 100,
+          type: "normal",
+          damageClass: "special",
+          flavorText: "사용했을 때의 날씨에 따라서 기술 타입과 위력이 바뀐다.",
+          meta: {
+            ailment: {
+              name: "none",
+              url: "https://pokeapi.co/api/v2/move-ailment/0/"
+            },
+            ailment_chance: 0,
+            category: {
+              name: "damage",
+              url: "https://pokeapi.co/api/v2/move-category/0/"
+            },
+            crit_rate: 0,
+            drain: 0,
+            flinch_chance: 0,
+            healing: 0,
+            max_hits: null,
+            max_turns: null,
+            min_hits: null,
+            min_turns: null,
+            stat_chance: 0
+          },
+          stat_changes: []
+        },
+        {
+          name: "curse",
+          url: "https://pokeapi.co/api/v2/move/174/",
+          power: null,
+          pp: 10,
+          priority: 0,
+          accuracy: null,
+          type: "ghost",
+          damageClass: "status",
+          flavorText: "Works differently for ghost-types.",
+          meta: {
+            ailment: {
+              name: "none",
+              url: "https://pokeapi.co/api/v2/move-ailment/0/"
+            },
+            ailment_chance: 0,
+            category: {
+              name: "unique",
+              url: "https://pokeapi.co/api/v2/move-category/13/"
+            },
+            crit_rate: 0,
+            drain: 0,
+            flinch_chance: 0,
+            healing: 0,
+            max_hits: null,
+            max_turns: null,
+            min_hits: null,
+            min_turns: null,
+            stat_chance: 0
+          },
+          stat_changes: []
+        }
+      ],
+      abilitiesAvailable: [
+        {
+          name: "overgrow",
+          url: "https://pokeapi.co/api/v2/ability/65/"
+        },
+        {
+          name: "chlorophyll",
+          url: "https://pokeapi.co/api/v2/ability/34/"
+        }
+      ],
+      abilityEquipped: {
+        name: "overgrow",
+        url: "https://pokeapi.co/api/v2/ability/65/"
+      },
+      heldItem: ""
+    }
+  ]
+}
+
+
 
 
 
@@ -1702,14 +1903,40 @@ const loadPartyPage = () => {
 }
 
 
-
-
-
-
-
-
-
 const loadBattlePage = () => {
+
+  const battlePage = document.getElementById("battle");
+
+  const battleContainer = document.createElement("div");
+  battleContainer.id = "battle-container";
+  battlePage.appendChild(battleContainer);
+
+  // Left Column
+
+  const battleLeftColumn = document.createElement("div");
+  battleLeftColumn.classList.add("battle-container-column");
+  battleContainer.appendChild(battleLeftColumn);
+
+  // Fight Screen
+
+  const fightPanel = document.createElement("div");
+  fightPanel.id = "fight-panel";
+  battleLeftColumn.appendChild(fightPanel);
+
+  // Fight Stat Panels
+
+  const enemyStatPanel = document.createElement("div");
+  enemyStatPanel.id = "battle-enemy-stats";
+  fightPanel.appendChild(enemyStatPanel);
+
+  const enemyStatDetails = document.createElement("div");
+  enemyStatDetails.classList.add("battle-pokemon-details");
+  enemyStatPanel.appendChild(enemyStatDetails);
+
+  const enemyCurrentName = document.createElement("h3");
+  enemyCurrentName.innerText = 
+
+  
 }
 
 
