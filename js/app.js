@@ -3,8 +3,10 @@ let offset = 0;
 let limit = 15;
 let isLoading = false;
 let battleStall = false;
+let battleNotification = [];
 
 let struggle = {};
+const moveDuration = 3000;
 
 
 const party = {
@@ -82,6 +84,11 @@ const party = {
       currentPokemon.abilityEquipped = currentPokemon.abilitiesAvailable[randomAbilityIndex];
 
       currentPokemon.heldItem = ""
+
+
+      // FOR BATTLE
+
+      currentPokemon.currentHealth = currentPokemon.stats[0].base_stat;
 
       console.log("Current Pokemon:", currentPokemon) // The current Pokemon
     }
@@ -246,6 +253,8 @@ const gymLeader = {
       currentPokemon.abilityEquipped = currentPokemon.abilitiesAvailable[randomAbilityIndex];
 
       currentPokemon.heldItem = ""
+
+      currentPokemon.currentHealth = currentPokemon.stats[0].base_stat;
 
       console.log("Current Pokemon:", currentPokemon) // The current Pokemon
     })
@@ -446,6 +455,7 @@ const setStatusPanel = (pokemon, person) => {
 
 }
 
+
 const battleText = (person, action, delay) => {
   const descriptionBox = document.getElementById("fight-description-box");
   const descriptionText = document.createElement("p")
@@ -458,7 +468,12 @@ const battleText = (person, action, delay) => {
     moveName = "switched Pokemon"
     actor = "You"
   } else {
-    moveName = `used ${action.name}`
+    if (action.name) {
+      moveName = `used ${action.name}`
+    } else {
+      moveName = action;
+    }
+    
     if (person === "trainer") {
       actor = party.currentParty[party.activePokemon].name.replaceAll("-", " ");
     } else {
@@ -476,10 +491,141 @@ const battleText = (person, action, delay) => {
   }, delay);
 }
 
+
+
+/**
+ * Upon use, does calculations for damage and healing, then deals to pokemon.
+ * @param {object} move 
+ * @param {string} person 
+ */
 const battleAttack = async (move, person) => {
   console.log(`${person} uses ${move.name}`);
-  battleText(person, move, 4000);
+  battleText(person, move, moveDuration);
+
+  let damage = move.power;
+
+  // Start by setting up who is who
+  let currentPokemon = {};
+  let opposingPokemon = {};
   
+  if (person === "trainer") {
+    currentPokemon = party.currentParty[party.activePokemon];
+    opposingPokemon = gymLeader.party[gymLeader.activePokemon];
+  } else {
+    currentPokemon = gymLeader.party[gymLeader.activePokemon];
+    opposingPokemon = party.currentParty[party.activePokemon];
+  }
+  console.log("Pokemon: ", currentPokemon);
+  
+
+
+  // Multiply Damage by Type
+  const moveType = await fetchData(`type/${move.type}`)
+  if (moveType) { // In case the fetch brings an error.
+    opposingPokemon.types.forEach((type) => { // Type comparison
+      console.log(moveType.damage_relations.double_damage_to)
+      if (moveType.damage_relations.double_damage_to.some(typeObject => typeObject.name === type)) {
+        damage = damage * 2;
+        battleNotification.push("was Super Effective");
+
+      }
+      if (moveType.damage_relations.half_damage_to.some(typeObject => typeObject.name === type)) {
+        damage = damage / 2;
+        
+        if (battleNotification.includes("was Super Effective")) {
+          battleNotification.pop()
+        } else {
+          battleNotification.push("was not Very Effective");
+        }
+      }
+      if (moveType.damage_relations.no_damage_to.some(typeObject => typeObject.name === type)) {
+        damage = damage * 0;
+
+        if (battleNotification.includes("was not Very Effective")) {
+          battleNotification.pop()
+        }
+        if (battleNotification.includes("was Very Effective")) {
+          battleNotification.pop()
+        }
+        battleNotification.push("Failed their move");
+      }
+    });
+  }
+  
+
+  // Multiply Damage by Class
+  if (move.damageClass === "physical") {
+    damage = damage * (currentPokemon.stats[1].base_stat / 100);   // Multiply by Attack
+    damage = damage / (opposingPokemon.stats[2].base_stat / 100);  // Divide by Defence
+  } else if (move.damageClass === "special") {
+    damage = damage * (currentPokemon.stats[3].base_stat / 100);   // Multiply by Special Attack
+    damage = damage / (opposingPokemon.stats[4].base_stat / 100);  // Divide by Special Defence
+  }
+
+  if (move.meta) {
+    // Check for Critical Hit
+    const critChance = Math.random() * 100;
+    if (critChance < 6.5 * (move.meta.crit_rate + 1)) { // Base Crit Rate is "0"
+      damage = damage * 1.5;
+      battleNotification.push("did a Critical Hit");
+    }
+
+    // Health Drain
+    const drain = parseInt(damage * (move.meta.drain / 100));
+    currentPokemon.currentHealth += damage * (drain / 100)
+    if (drain) {
+      battleNotification.push(`Healed ${drain} hp`);
+    }
+
+    // Healing 
+    const healing = parseInt(move.meta.healing);
+    currentPokemon.currentHealth += healing
+    if (healing) {
+      battleNotification.push(`Healed ${healing} hp`);
+    } 
+
+    // Prevent health Overflow
+    if (currentPokemon.currentHealth > currentPokemon.stats[0].base_stat) {
+      currentPokemon.currentHealth = currentPokemon.stats[0].base_stat;
+    }
+
+    // Multi Turn Attacks
+    if (move.meta.min_turns) {
+      const randomTurns = parseInt(Math.random() * (move.meta.max_turns - move.meta.min_turns));
+      damage = damage * randomTurns;
+      battleNotification.push(`Hit ${randomTurns} Time`);
+    }
+
+    // Multi Hit Attacks
+    if (move.meta.hits) {
+      const randomHits = parseInt(Math.random() * (move.meta.max_hits - move.meta.min_hits));
+      damage = damage * randomHits;
+      battleNotification.push(`Hit ${randomHits} Time`);
+    }
+  }
+
+  // Damage Spread
+  const randomSpread = 1+(Math.random()*4/100-0.02);
+  damage = damage * randomSpread;
+
+  // Around-the-board Damage Reduction
+  damage = parseInt(damage/4);
+  console.log("damage:",damage)
+
+  if (!damage) {
+    damage = 0; // Reset damage. back to zero if there were any nulls.
+  }
+
+  const missChance = Math.random()*100;
+  if (move.accuracy / 1.0065 < missChance) {
+    battleNotification = [];
+    battleNotification.push("Missed");
+    console.log("missed")
+  } else {
+    opposingPokemon.currentHealth -= damage;
+    console.log(`${opposingPokemon.name} now has ${opposingPokemon.currentHealth} hp`)
+  }
+  console.log("Move: ", move)
 }
 
 
@@ -498,13 +644,22 @@ const battleAction = async (action, value) => {
     battleStall = true;
     // Since the  user swaps pokemon, they forfeit their turn, and get attacked by the enemy.
     playerAttack = "Swap Pokemon"
-    battleText("trainer", "swap", 4000);
-    await sleep(4000);
+    battleText("trainer", "swap", 2000);
+    await sleep(2000);
+
     battleAttack(opponentAttack, "leader");
+    await sleep(moveDuration);
+
+    console.log("Battle Notification:",battleNotification)
+    for (let i = 0; i < battleNotification.length; i++) {
+      console.log(battleNotification[i])
+      battleText("leader", battleNotification[i], 3000);
+      await sleep(3000);
+    }
+    battleNotification = [];
     battleStall = false;
 
   } else {
-
     if (value === "struggle") {
       playerAttack = await struggle;
     }
@@ -515,14 +670,32 @@ const battleAction = async (action, value) => {
     const opponentSpeed = opponentPokemon.stats[5].base_stat;
     const playerSpeed = playerPokemon.stats[5].base_stat;
 
+
+
     // Opponent was faster, so they attack first
     const opponentAttacksFirst = async () => {
       console.clear();
       console.log("Opponent was faster")
+
       battleAttack(opponentAttack, "leader");
-      await sleep(4000);
+      await sleep(moveDuration);
+      console.log("Battle Notification:", battleNotification)
+      for (let i = 0; i < battleNotification.length; i++) {
+        console.log(battleNotification[i])
+        battleText("leader", battleNotification[i], 3000);
+        await sleep(3000);
+      }
+      battleNotification = [];
+
       battleAttack(playerAttack, "trainer");
-      await sleep(4000);
+      await sleep(moveDuration);
+      console.log("Battle Notification:", battleNotification)
+      for (let i = 0; i < battleNotification.length; i++) {
+        console.log(battleNotification[i])
+        battleText("trainer", battleNotification[i], 3000);
+        await sleep(3000);
+      }
+      battleNotification = [];
       battleStall = false;
     }
 
@@ -530,12 +703,30 @@ const battleAction = async (action, value) => {
     const playerAttacksFirst = async () => {
       console.clear();
       console.log("Player was faster")
+
       battleAttack(playerAttack, "trainer");
-      await sleep(4000);
+      await sleep(moveDuration);
+      console.log("Battle Notification:", battleNotification)
+      for (let i = 0; i < battleNotification.length; i++) {
+        console.log(battleNotification[i])
+        battleText("trainer", battleNotification[i], 3000);
+        await sleep(3000);
+      }
+      battleNotification = [];
+
       battleAttack(opponentAttack, "leader");
-      await sleep(4000);
+      await sleep(moveDuration);
+      console.log("Battle Notification:", battleNotification)
+      for (let i = 0; i < battleNotification.length; i++) {
+        console.log(battleNotification[i])
+        battleText("leader", battleNotification[i], 3000);
+        await sleep(3000);
+      }
+      battleNotification = [];
       battleStall = false;
     }
+
+
 
     // Check for move priority
     if (playerPriority > opponentPriority) { // Player has greater Priority
@@ -549,8 +740,6 @@ const battleAction = async (action, value) => {
         playerAttacksFirst();
       }
     }
-
-
   }
 }
 
