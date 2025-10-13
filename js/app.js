@@ -1,6 +1,6 @@
 const rootUrl = "https://pokeapi.co/api/v2/"
 let offset = 0;
-let limit = 15;
+let limit = 50;
 let isLoading = false;
 let battleStall = false;
 let battleNotification = [];
@@ -14,6 +14,7 @@ const party = {
   maxSize: 6,
   currentSize: 0,
   activePokemon: 0,
+  pokemonAlive: true,
 
   /**                                          ----  -----------  --------  -----  -----  -----  ---------
    * Adds a pokemon to the party. Includes The Name, Sprite URLs, Nickname, Types, Stats, Moves, Abilities, and Held Item
@@ -166,6 +167,7 @@ const gymLeader = {
   type: "Fire",
   party: [],
   activePokemon: 0,
+  pokemonAlive: true,
 
   async setMoveProps(move, pokemon, index) {
     move = await move;
@@ -187,8 +189,142 @@ const gymLeader = {
     console.log(`Creating ${type} Team`);
     data = await fetchData(`type/${type}`);
 
-    const teamSize = [0, 1, 2, 3, 4, 5];
+    this.type = type;
 
+    const trainerNamesByType = {
+      normal: [
+        "Trainer Casey",
+        "Backpacker Owen",
+        "Ace Joey",
+        "Rookie Ellie",
+        "Worker Dan"
+      ],
+      fire: [
+        "Pyromaniac Blaze",
+        "Firebreather Kira",
+        "Hotshot Leo",
+        "Lava Tamer Flint",
+        "Smelter Aria"
+      ],
+      water: [
+        "Swimmer Kai",
+        "Sailor Marina",
+        "Diver Niko",
+        "Captain Brook",
+        "Surfer Dylan"
+      ],
+      grass: [
+        "Gardener Fern",
+        "Ranger Willow",
+        "Botanist Sage",
+        "Hiker Moss",
+        "Farmer Ivy"
+      ],
+      electric: [
+        "Engineer Volt",
+        "Techie Zap",
+        "Mechanic Sparks",
+        "DJ Surge",
+        "Inventor Lumen"
+      ],
+      ice: [
+        "Snowboarder Skye",
+        "Mountaineer Frost",
+        "Figure Skater Crystal",
+        "Explorer Chill",
+        "Climber Hail"
+      ],
+      fighting: [
+        "Black Belt Ryu",
+        "Martial Artist Mina",
+        "Brawler Knox",
+        "Sensei Jin",
+        "Karateka Tessa"
+      ],
+      poison: [
+        "Chemist Viper",
+        "Toxicologist Lilac",
+        "Venom Dax",
+        "Plague Doctor Mire",
+        "Smog Punk Kira"
+      ],
+      ground: [
+        "Miner Clay",
+        "Excavator Terra",
+        "Archaeologist Rune",
+        "Rancher Dusty",
+        "Foreman Flint"
+      ],
+      flying: [
+        "Pilot Aero",
+        "Bird Keeper Skyler",
+        "Glider Finn",
+        "Courier Wing",
+        "Paraglider Gale"
+      ],
+      psychic: [
+        "Telepath Mira",
+        "Oracle Zane",
+        "Meditator Luna",
+        "Mindbender Sol",
+        "Seer Iris"
+      ],
+      bug: [
+        "Bug Catcher Ned",
+        "Entomologist Bea",
+        "Gardener Cricket",
+        "Collector Moth",
+        "Scout Buzz"
+      ],
+      rock: [
+        "Hiker Boulder",
+        "Climber Petra",
+        "Geologist Granit",
+        "Worker Rocky",
+        "Miner Quartz"
+      ],
+      ghost: [
+        "Medium Iris",
+        "Occultist Wraith",
+        "Hexer Mort",
+        "Spirit Caller Luna",
+        "Exorcist Shade"
+      ],
+      steel: [
+        "Engineer Alloy",
+        "Blacksmith Iron",
+        "Mechanic Gear",
+        "Steelworker Vance",
+        "Technician Chrome"
+      ],
+      dragon: [
+        "Tamer Draco",
+        "Knight Ember",
+        "Wyrmkeeper Kael",
+        "Lorekeeper Saphira",
+        "Dragoon Lance"
+      ],
+      dark: [
+        "Rogue Shade",
+        "Outlaw Raven",
+        "Trickster Noct",
+        "Shadow Ace",
+        "Thief Umbra"
+      ],
+      fairy: [
+        "Performer Lila",
+        "Dancer Glimmer",
+        "Pixie Belle",
+        "Caretaker Luna",
+        "Charmcaster Faye"
+      ]
+    };
+    const randomName = trainerNamesByType[type][parseInt(Math.random() * trainerNamesByType[type].length)]
+    this.name = randomName;
+    console.log(this.name)
+
+
+    const teamSize = [0, 1, 2, 3, 4, 5];
     teamSize.forEach(() => {
       this.party.push({});
     })
@@ -259,10 +395,6 @@ const gymLeader = {
       console.log("Current Pokemon:", currentPokemon) // The current Pokemon
     })
   },
-
-  pokemonKill(pokemon) {
-
-  }
 }
 
 
@@ -395,6 +527,12 @@ const setMoveSelection = (pokemon) => {
   })
 }
 
+const removePlayerImage = (person) => {
+  const pokemonDisplay = document.getElementById(`${person}-battle-display`);
+  const pokeImg = pokemonDisplay.querySelector("img");
+  pokemonDisplay.removeChild(pokeImg);
+}
+
 /**
  * Sets the image for you/enemy on the Battle Screen.
  * @param {number} pokemon - party.currentParty[] <- index number 
@@ -466,7 +604,15 @@ const battleText = (person, action, delay) => {
 
   if (action === "swap") {
     moveName = "switched Pokemon"
+    if (person === "trainer") {
+      actor = "You"
+    } else {
+      actor = gymLeader.name;
+    }
+    
+  } else if (action === "Pokemon Defeated") {
     actor = "You"
+    moveName = "must select another Pokemon!"
   } else {
     if (action.name) {
       moveName = `used ${action.name}`
@@ -492,6 +638,32 @@ const battleText = (person, action, delay) => {
 }
 
 
+/**
+ * Upon pokemon change request, this calls all change requests needed for the battle!
+ * @param {number} pokemon - The clicked pokemon card event in the 'Change Pokemon' card
+ * @param {string} person - "trainer" / "leader" - Who we are editing
+ */
+const battleTeamSwap = (pokemon, person) => {
+  console.log("THIS",pokemon, person)
+  if (!battleStall) {
+    if (person === "trainer") {
+      if (pokemon != party.activePokemon) {
+        party.activePokemon = pokemon;
+        setPokemonImg(pokemon, "trainer");
+        setMoveSelection(pokemon);
+        setStatusPanel(pokemon, "trainer");
+        if (party.pokemonAlive) {
+          battleAction("swap");
+        }
+        party.pokemonAlive = true;
+      }
+    } else {
+      setStatusPanel(pokemon, "leader");
+      setPokemonImg(pokemon, "leader");
+    }
+  }
+}
+
 
 /**
  * Upon use, does calculations for damage and healing, then deals to pokemon.
@@ -507,13 +679,16 @@ const battleAttack = async (move, person) => {
   // Start by setting up who is who
   let currentPokemon = {};
   let opposingPokemon = {};
+  let opposingPerson = {};
   
   if (person === "trainer") {
     currentPokemon = party.currentParty[party.activePokemon];
     opposingPokemon = gymLeader.party[gymLeader.activePokemon];
+    opposingPerson = gymLeader;
   } else {
     currentPokemon = gymLeader.party[gymLeader.activePokemon];
     opposingPokemon = party.currentParty[party.activePokemon];
+    opposingPerson = party;
   }
   console.log("Pokemon: ", currentPokemon);
   
@@ -612,8 +787,24 @@ const battleAttack = async (move, person) => {
   damage = parseInt(damage/4);
   console.log("damage:",damage)
 
+
   if (!damage) {
     damage = 0; // Reset damage. back to zero if there were any nulls.
+  }
+
+
+  const updatePokeStats = async (pokemon, person) => {
+    if (person != "trainer") {
+      const healthBar = document.getElementById("leader-health-bar");
+      healthBar.style.width = `${Math.min((parseInt(pokemon.currentHealth) / parseInt(pokemon.stats[0].base_stat) * 100), 100)}%`
+      const healthText = document.getElementById("leader-health");
+      healthText.innerText = `${parseInt(pokemon.currentHealth)}/${pokemon.stats[0].base_stat}`
+    } else {
+      const healthBar = document.getElementById("trainer-health-bar");
+      healthBar.style.width = `${Math.min((parseInt(pokemon.currentHealth) / parseInt(pokemon.stats[0].base_stat) * 100), 100)}%`
+      const healthText = document.getElementById("trainer-health");
+      healthText.innerText = `${parseInt(pokemon.currentHealth)}/${pokemon.stats[0].base_stat}`
+    }
   }
 
   const missChance = Math.random()*100;
@@ -624,7 +815,33 @@ const battleAttack = async (move, person) => {
   } else {
     opposingPokemon.currentHealth -= damage;
     console.log(`${opposingPokemon.name} now has ${opposingPokemon.currentHealth} hp`)
+
+    await updatePokeStats(opposingPokemon, opposingPerson)
+
+    if (opposingPokemon.currentHealth <= 0) {
+      console.log("DIED")
+      console.log(opposingPerson)
+      battleNotification.push(`Killed ${opposingPokemon.name}`);
+      opposingPerson.pokemonAlive = false;
+      if (person != "trainer") {
+        removePlayerImage("trainer");
+      } else {
+        removePlayerImage("leader");
+      }
+    }
   }
+
+  await updatePokeStats(currentPokemon, person);
+
+  if (currentPokemon.currentHealth <= 0) { // Died while dealing damage
+    party.pokemonAlive = false;
+    if (person != "trainer") {
+      removePlayerImage("trainer");
+    } else {
+      removePlayerImage("leader");
+    }
+  }
+  
   console.log("Move: ", move)
 }
 
@@ -677,6 +894,7 @@ const battleAction = async (action, value) => {
       console.clear();
       console.log("Opponent was faster")
 
+      // Opponent Attacks
       battleAttack(opponentAttack, "leader");
       await sleep(moveDuration);
       console.log("Battle Notification:", battleNotification)
@@ -687,23 +905,30 @@ const battleAction = async (action, value) => {
       }
       battleNotification = [];
 
-      battleAttack(playerAttack, "trainer");
-      await sleep(moveDuration);
-      console.log("Battle Notification:", battleNotification)
-      for (let i = 0; i < battleNotification.length; i++) {
-        console.log(battleNotification[i])
-        battleText("trainer", battleNotification[i], 3000);
-        await sleep(3000);
+      // Player Attacks
+      if (party.pokemonAlive) {
+        battleAttack(playerAttack, "trainer");
+        await sleep(moveDuration);
+        console.log("Battle Notification:", battleNotification)
+        for (let i = 0; i < battleNotification.length; i++) {
+          console.log(battleNotification[i])
+          battleText("trainer", battleNotification[i], 3000);
+          await sleep(3000);
+        }
+        battleNotification = [];
+        battleStall = false;
+      }  else { // Player Died
+        battleStall = false;
       }
-      battleNotification = [];
-      battleStall = false;
     }
+
 
     // Player was faster, so they attack first
     const playerAttacksFirst = async () => {
       console.clear();
       console.log("Player was faster")
 
+      // Player Attacks
       battleAttack(playerAttack, "trainer");
       await sleep(moveDuration);
       console.log("Battle Notification:", battleNotification)
@@ -714,20 +939,26 @@ const battleAction = async (action, value) => {
       }
       battleNotification = [];
 
-      battleAttack(opponentAttack, "leader");
-      await sleep(moveDuration);
-      console.log("Battle Notification:", battleNotification)
-      for (let i = 0; i < battleNotification.length; i++) {
-        console.log(battleNotification[i])
-        battleText("leader", battleNotification[i], 3000);
-        await sleep(3000);
+      // Opponent Attacks
+      if (gymLeader.pokemonAlive) {
+        battleAttack(opponentAttack, "leader");
+        await sleep(moveDuration);
+        console.log("Battle Notification:", battleNotification)
+        for (let i = 0; i < battleNotification.length; i++) {
+          console.log(battleNotification[i])
+          battleText("leader", battleNotification[i], 3000);
+          await sleep(3000);
+        }
+        battleNotification = [];
+        battleStall = false;
+      } else {
+        battleStall = false;
+
+        gymLeader.party.splice(gymLeader.activePokemon, 1);
+        battleTeamSwap(0, "leader");
+        battleText("leader", "swap", 3000);
       }
-      battleNotification = [];
-      battleStall = false;
     }
-
-
-
     // Check for move priority
     if (playerPriority > opponentPriority) { // Player has greater Priority
       playerAttacksFirst();
@@ -741,57 +972,51 @@ const battleAction = async (action, value) => {
       }
     }
   }
-}
+  console.log(gymLeader.activePokemon)
+  if (!gymLeader.pokemonAlive) {
+    await sleep(3000);
 
-
-
-
-/**
- * Upon pokemon change request, this calls all change requests needed for the battle!
- * @param {number} pokemon - The clicked pokemon card event in the 'Change Pokemon' card
- * @param {string} person - "trainer" / "leader" - Who we are editing
- */
-const battleTeamSwap = (pokemon, person) => {
-  if (!battleStall) {
-    if (person === "trainer") {
-      if (pokemon != party.activePokemon) {
-        party.activePokemon = pokemon;
-        setPokemonImg(pokemon, "trainer");
-        setMoveSelection(pokemon);
-        setStatusPanel(pokemon, "trainer");
-        battleAction("swap");
-      }
-    } else {
-      setStatusPanel(pokemon, "leader");
-      setPokemonImg(pokemon, "leader");
-    }
+    gymLeader.party.splice(gymLeader.activePokemon, 1);
+    battleTeamSwap(0, "leader");
+    battleText("leader", "swap", 3000);
+    gymLeader.pokemonAlive = true;
+  }
+  if (!party.pokemonAlive) {
+    await sleep(3000);
   }
 }
+
 
 
 const battleMoveSelect = (moveID) => {
   const pokemon = party.currentParty[party.activePokemon];
   const move = pokemon.movesEquipped[moveID];
 
-  if (!battleStall) { // Makes sure the round has neded before acting.
-    battleStall = true;
+  if (party.pokemonAlive) {
+    if (!battleStall) { // Makes sure the round has neded before acting.
+      battleStall = true;
 
-    if (move.ppRemaining > 0) { // Player has PP, can use move.
-      battleAction("attack", moveID); // Starts Battle Sequence with Move Selected
-      move.ppRemaining -= 1;  // 1 Less PP available on selected move
-      document.getElementById(move.name).querySelector(".battle-move-pp").innerText = `${move.ppRemaining}/${move.pp}`
-    } else { // User has used all move pps.
-      let movesAvailable = null; // Default State
-      pokemon.movesEquipped.forEach((moveOther) => { // Go through every move the user has
-        if (moveOther.ppRemaining != 0) { // If any move has available PP
-          movesAvailable = true;  // Return true
+      if (move.ppRemaining > 0) { // Player has PP, can use move.
+        battleAction("attack", moveID); // Starts Battle Sequence with Move Selected
+        move.ppRemaining -= 1;  // 1 Less PP available on selected move
+        document.getElementById(move.name).querySelector(".battle-move-pp").innerText = `${move.ppRemaining}/${move.pp}`
+      } else { // User has used all move pps.
+        let movesAvailable = null; // Default State
+        pokemon.movesEquipped.forEach((moveOther) => { // Go through every move the user has
+          if (moveOther.ppRemaining != 0) { // If any move has available PP
+            movesAvailable = true;  // Return true
+          }
+        });
+        if (movesAvailable != true) { // User is out of PP on all moves
+          battleAction("attack", "struggle"); // The player uses struggle
         }
-      });
-      if (movesAvailable != true) { // User is out of PP on all moves
-        battleAction("attack", "struggle"); // The player uses struggle
       }
     }
+  } else {
+    battleText("Trainer", "Pokemon Defeated", 3000);
   }
+
+  
 
 }
 
@@ -2338,15 +2563,22 @@ const loadPartyPage = () => {
 
 
 const loadBattlePage = async () => {
+  const battlePage = document.getElementById("battle");
 
   const types = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "steel", "dragon", "dark", "fairy"]
   const randomType = types[Math.floor(Math.random() * types.length)]
   await gymLeader.generateTeam(randomType);
 
+  const introductionText = document.createElement("h1");
+  introductionText.id = "battle-intro-text";
+  introductionText.innerText = `${gymLeader.name} challenges you to a fight!`
+  battlePage.appendChild(introductionText);
 
-  await sleep(1500);
+  setTimeout(() => {
+    battlePage.removeChild(introductionText);
+  }, 5000);
 
-  const battlePage = document.getElementById("battle");
+  await sleep(5000);
 
   const battleContainer = document.createElement("div");
   battleContainer.id = "battle-container";

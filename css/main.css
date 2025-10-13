@@ -1987,11 +1987,13 @@ search {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 2rem;
+  animation: battle-phase-in 1s ease-in-out forwards;
 }
 
 .battle-container-column {
   display: grid;
   gap: 2rem;
+  animation: battle-phase-in 1s ease-in-out forwards;
 }
 
 #fight-panel {
@@ -2012,6 +2014,17 @@ search {
 
   overflow: hidden;
   box-shadow: 0 8px 22px -4px var(--drop-shadow);
+
+  animation: battle-phase-in 1s ease-in-out forwards;
+}
+
+@keyframes battle-phase-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 #battle-trainer-stats {
@@ -2104,6 +2117,7 @@ search {
   background-color: #3df8b0;
   height: 6px;
   border-radius: 6px;
+  transition: 2s;
 }
 
 
@@ -2393,10 +2407,36 @@ width: 2rem;
 }
 
 
+#battle-intro-text {
+  position: absolute;
+  z-index: 10000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  animation: battle-intro-appear 5s forwards ease-in-out;
+}
 
 
 
-
+@keyframes battle-intro-appear {
+  0% {
+    top: 40%;
+    opacity: 0;
+  }
+  20% {
+    top: 50%;
+    opacity: 1;
+  }
+  80% {
+    top: 50%;
+    opacity: 1;
+  }
+  100% {
+  top: 60%;
+  opacity: 0;
+  }
+}
 
 
 
