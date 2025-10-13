@@ -1995,38 +1995,67 @@ search {
 }
 
 #fight-panel {
+
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
   grid-template-areas: 
   "leader-stats leader-pokemon"
-  "trainer-pokemon trainer-stats";
+  "trainer-pokemon trainer-stats"
+  "fight-description fight-description";
   row-gap: 1rem;
 
   background-color: var(--off-white);
   border-radius: 1.5rem;
-  padding: 4rem 4rem;
+  padding: 0;
   height: fit-content;
 
+  overflow: hidden;
   box-shadow: 0 8px 22px -4px var(--drop-shadow);
 }
 
 #battle-trainer-stats {
   grid-area: trainer-stats;
   margin-top: auto;
-  margin-left: auto
+  margin-left: auto;
+  margin-right: 4rem;
+  margin-bottom: 4rem;
 }
 
 #battle-leader-stats {
   grid-area: leader-stats;
+  margin-left: 4rem;
+  margin-top: 4rem;
 }
 
 #trainer-battle-display {
   grid-area: trainer-pokemon;
+  margin-left: 4rem;
+  margin-bottom: 4rem;
 }
 
 #leader-battle-display {
   grid-area: leader-pokemon;
+  margin-right: 4rem;
+  margin-top: 4rem;
+}
+
+#fight-description-box {
+  grid-area: fight-description;
+  width: 100%;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px -6px 16px -4px var(--drop-shadow);
+}
+
+#fight-description-text {
+  color: var(--grey);
+  text-align: center;
+  text-transform: capitalize;
+  font-size: 1.35rem;
+  font-weight: 700;
 }
 
 /* Details Panel */

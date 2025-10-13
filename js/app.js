@@ -2,15 +2,16 @@ const rootUrl = "https://pokeapi.co/api/v2/"
 let offset = 0;
 let limit = 15;
 let isLoading = false;
+let battleStall = false;
 
-
-
+let struggle = {};
 
 
 const party = {
   currentParty: [],
   maxSize: 6,
   currentSize: 0,
+  activePokemon: 0,
 
   /**                                          ----  -----------  --------  -----  -----  -----  ---------
    * Adds a pokemon to the party. Includes The Name, Sprite URLs, Nickname, Types, Stats, Moves, Abilities, and Held Item
@@ -113,7 +114,6 @@ const party = {
 
   async setMoveProps(move, pokemon, index) {
     move = await move;
-    console.log("MOVE:", pokemon)
 
     pokemon.movesEquipped[index].name = move.name;
 
@@ -154,206 +154,111 @@ const party = {
   }
 }
 
-
 const gymLeader = {
   name: "Frank",
   type: "Fire",
-  party: [
-    {
-      name: "ivysaur",
-      nickname: "Ivysaur",
-      sprites: {
-        back_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/2.png",
-        back_shiny: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/2.png",
-        front_default: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png",
-        front_shiny: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/2.png"
-      },
-      types: [
-        "grass",
-        "poison"
-      ],
-      stats: [
-        {
-          name: "hp",
-          base_stat: 60
-        },
-        {
-          name: "attack",
-          base_stat: 62
-        },
-        {
-          name: "defense",
-          base_stat: 63
-        },
-        {
-          name: "special-attack",
-          base_stat: 80
-        },
-        {
-          name: "special-defense",
-          base_stat: 80
-        },
-        {
-          name: "speed",
-          base_stat: 60
+  party: [],
+  activePokemon: 0,
+
+  async setMoveProps(move, pokemon, index) {
+    move = await move;
+
+    pokemon.movesEquipped[index].name = move.name;
+
+    pokemon.movesEquipped[index].power = move.power;
+    pokemon.movesEquipped[index].pp = move.pp;
+    pokemon.movesEquipped[index].priority = move.priority;
+    pokemon.movesEquipped[index].accuracy = move.accuracy;
+    pokemon.movesEquipped[index].type = move.type.name;
+    pokemon.movesEquipped[index].damageClass = move.damage_class.name;
+
+    pokemon.movesEquipped[index].meta = move.meta;
+    pokemon.movesEquipped[index].stat_changes = move.stat_changes;
+  },
+
+  async generateTeam(type) {
+    console.log(`Creating ${type} Team`);
+    data = await fetchData(`type/${type}`);
+
+    const teamSize = [0, 1, 2, 3, 4, 5];
+
+    teamSize.forEach(() => {
+      this.party.push({});
+    })
+
+    teamSize.forEach(async (index) => {
+      const randomPoke = data.pokemon[Math.floor(Math.random() * data.pokemon.length)];
+      randomPokeParams = randomPoke.pokemon.url.replace(`https://pokeapi.co/api/v2/`, "")
+      pokemon = await fetchData(randomPokeParams);
+
+      const currentPokemon = this.party[index]; // This is the current Pokemon.
+
+      currentPokemon.name = pokemon.name;
+
+      currentPokemon.sprites = {}; // Initiates the pokemon sprites sub-object
+      Object.keys(pokemon.sprites).forEach((spriteName) => { // For each sprite in the pokemon sprite list
+        if (pokemon.sprites[spriteName] != null) { // Makes sure the current sprite isnt NULL
+          currentPokemon.sprites[spriteName] = pokemon.sprites[spriteName];
         }
-      ],
-      movesEquipped: [
-        {
-          name: "charm",
-          url: "https://pokeapi.co/api/v2/move/204/",
-          power: null,
-          pp: 20,
-          priority: 0,
-          accuracy: 100,
-          type: "fairy",
-          damageClass: "status",
-          flavorText: "Sharply lowers the foe's ATTACK.",
-          meta: {
-            ailment: {
-              name: "none",
-              url: "https://pokeapi.co/api/v2/move-ailment/0/"
-            },
-            ailment_chance: 0,
-            category: {
-              name: "net-good-stats",
-              url: "https://pokeapi.co/api/v2/move-category/2/"
-            },
-            crit_rate: 0,
-            drain: 0,
-            flinch_chance: 0,
-            healing: 0,
-            max_hits: null,
-            max_turns: null,
-            min_hits: null,
-            min_turns: null,
-            stat_chance: 0
-          },
-          stat_changes: [
-            {
-              change: -2,
-              stat: {
-                name: "attack",
-                url: "https://pokeapi.co/api/v2/stat/2/"
-              }
-            }
-          ]
-        },
-        {
-          name: "take-down",
-          url: "https://pokeapi.co/api/v2/move/36/",
-          power: 90,
-          pp: 20,
-          priority: 0,
-          accuracy: 85,
-          type: "normal",
-          damageClass: "physical",
-          flavorText: "A tackle that also hurts the user.",
-          meta: {
-            ailment: {
-              name: "none",
-              url: "https://pokeapi.co/api/v2/move-ailment/0/"
-            },
-            ailment_chance: 0,
-            category: {
-              name: "damage",
-              url: "https://pokeapi.co/api/v2/move-category/0/"
-            },
-            crit_rate: 0,
-            drain: -25,
-            flinch_chance: 0,
-            healing: 0,
-            max_hits: null,
-            max_turns: null,
-            min_hits: null,
-            min_turns: null,
-            stat_chance: 0
-          },
-          stat_changes: []
-        },
-        {
-          name: "weather-ball",
-          url: "https://pokeapi.co/api/v2/move/311/",
-          power: 50,
-          pp: 10,
-          priority: 0,
-          accuracy: 100,
-          type: "normal",
-          damageClass: "special",
-          flavorText: "사용했을 때의 날씨에 따라서 기술 타입과 위력이 바뀐다.",
-          meta: {
-            ailment: {
-              name: "none",
-              url: "https://pokeapi.co/api/v2/move-ailment/0/"
-            },
-            ailment_chance: 0,
-            category: {
-              name: "damage",
-              url: "https://pokeapi.co/api/v2/move-category/0/"
-            },
-            crit_rate: 0,
-            drain: 0,
-            flinch_chance: 0,
-            healing: 0,
-            max_hits: null,
-            max_turns: null,
-            min_hits: null,
-            min_turns: null,
-            stat_chance: 0
-          },
-          stat_changes: []
-        },
-        {
-          name: "curse",
-          url: "https://pokeapi.co/api/v2/move/174/",
-          power: null,
-          pp: 10,
-          priority: 0,
-          accuracy: null,
-          type: "ghost",
-          damageClass: "status",
-          flavorText: "Works differently for ghost-types.",
-          meta: {
-            ailment: {
-              name: "none",
-              url: "https://pokeapi.co/api/v2/move-ailment/0/"
-            },
-            ailment_chance: 0,
-            category: {
-              name: "unique",
-              url: "https://pokeapi.co/api/v2/move-category/13/"
-            },
-            crit_rate: 0,
-            drain: 0,
-            flinch_chance: 0,
-            healing: 0,
-            max_hits: null,
-            max_turns: null,
-            min_hits: null,
-            min_turns: null,
-            stat_chance: 0
-          },
-          stat_changes: []
-        }
-      ],
-      abilitiesAvailable: [
-        {
-          name: "overgrow",
-          url: "https://pokeapi.co/api/v2/ability/65/"
-        },
-        {
-          name: "chlorophyll",
-          url: "https://pokeapi.co/api/v2/ability/34/"
-        }
-      ],
-      abilityEquipped: {
-        name: "overgrow",
-        url: "https://pokeapi.co/api/v2/ability/65/"
-      },
-      heldItem: ""
-    }
-  ]
+      });
+
+      currentPokemon.types = [] // Initializes the types sub-array
+      pokemon.types.forEach((type) => { // Runs through everyarray element
+        currentPokemon.types.push(type.type.name);  // Adds the type `type[type{name: ---}]`
+      })
+
+      currentPokemon.stats = [] // Initializes the stats sub-array
+      pokemon.stats.forEach((stat, index) => { // Goes through each stat element in the stats array
+        currentPokemon.stats.push({});  // Creates the new stat object on the current pokemon
+        currentPokemon.stats[index].name = stat.stat.name;  // Give this object a name
+        currentPokemon.stats[index].base_stat = stat.base_stat; // Give this object a value
+      })
+
+      currentPokemon.movesAvailable = []  // Collection of all moves available
+      pokemon.moves.forEach((move, index) => { // Goes through the source pokemon's moves array
+        currentPokemon.movesAvailable.push({});
+        currentPokemon.movesAvailable[index].name = move.move.name;
+        currentPokemon.movesAvailable[index].url = move.move.url;
+      })
+
+      currentPokemon.movesEquipped = [] // Collection of moves the pokemon can use during combat
+      for (let index = 0; index < Math.min(currentPokemon.movesAvailable.length, 4); index++) { // Loops though the quantity of moves available, capped at 4. (ie: Magikarp only knows 2, so dont go past 2, whereas others know 4+)
+        const move = Math.floor(Math.random() * currentPokemon.movesAvailable.length); // Gets a random move from their possible moves
+        currentPokemon.movesEquipped.push({})
+        currentPokemon.movesEquipped[index].name = currentPokemon.movesAvailable[move].name;
+        currentPokemon.movesEquipped[index].url = currentPokemon.movesAvailable[move].url;
+      }
+
+      currentPokemon.movesEquipped.forEach((move, index) => {
+        const searchParams = move.url.replace("https://pokeapi.co/api/v2/", "");
+        this.setMoveProps(fetchData(searchParams), currentPokemon, index);
+      })
+
+      currentPokemon.abilitiesAvailable = [] // initiates the array
+      pokemon.abilities.forEach((ability, index) => {  // For each ability in the ability array
+        currentPokemon.abilitiesAvailable.push({});
+        currentPokemon.abilitiesAvailable[index].name = ability.ability.name;
+        currentPokemon.abilitiesAvailable[index].url = ability.ability.url;
+        // currentPokemon.abilitiesAvailable.push(ability.ability.name); // Sets the element to the ability name. Can use the name for the API call.
+      })
+
+      const randomAbilityIndex = Math.floor(Math.random() * currentPokemon.abilitiesAvailable.length);
+      currentPokemon.abilityEquipped = currentPokemon.abilitiesAvailable[randomAbilityIndex];
+
+      currentPokemon.heldItem = ""
+
+      console.log("Current Pokemon:", currentPokemon) // The current Pokemon
+    })
+  },
+
+  pokemonKill(pokemon) {
+
+  }
 }
+
+
+
+
 
 
 
@@ -362,16 +267,344 @@ const gymLeader = {
 // -------- BATTLE PAGE ACTIONS --------
 // -------------------------------------
 
-const battleMoveSelect = (event) => {
-  console.log(event);
+/**
+ * Function to pause the action sequence, to allow actions to happen.
+ * @param {number} ms - Pause duration in MS
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const battleTeamSwap = (event) => {
-  console.log(event);
+/**
+ * Sets the moves available to the user in the Battle Screen depending on the active pokemon!
+ * @param {number} pokemon - party.currentParty[] <- index number
+ */
+const setMoveSelection = (pokemon) => {
+  const moveListContainer = document.querySelector(".battle-moves-container");
+  moveListContainer.innerHTML = "";
+
+  party.currentParty[pokemon].movesEquipped.forEach((move, index) => {
+    const moveElement = document.createElement("li");
+    moveElement.id = move.name;
+    moveElement.classList.add("battle-move");
+    moveElement.addEventListener("click", () => {
+      battleMoveSelect(index);
+    });
+    moveListContainer.appendChild(moveElement);
+
+    // Move Header
+
+    const moveHeaderContainer = document.createElement("div");
+    moveHeaderContainer.classList.add("battle-move-inner-header");
+    moveElement.appendChild(moveHeaderContainer);
+
+    const moveHeader = document.createElement("h3");
+    moveHeader.innerText = move.name;
+    moveHeaderContainer.appendChild(moveHeader);
+
+    const movePP = document.createElement("p");
+    movePP.classList.add("battle-move-pp");
+    let ppVal = move.pp;
+    if (!ppVal) {
+      ppVal = "---"
+    }
+    movePP.innerText = `${ppVal}/${ppVal}`
+    moveHeaderContainer.appendChild(movePP);
+    move.ppRemaining = move.pp;
+
+    // Move Details
+
+    const moveDetails = document.createElement("div");
+    moveDetails.classList.add("battle-move-details-container")
+    moveElement.appendChild(moveDetails);
+
+    const moveStatsContainer = document.createElement("div");
+    moveStatsContainer.classList.add("battle-move-stats");
+    moveDetails.appendChild(moveStatsContainer);
+
+    // Move Power
+
+    const movePowerContainer = document.createElement("div");
+    movePowerContainer.classList.add("battle-move-stat");
+    moveStatsContainer.appendChild(movePowerContainer);
+
+    const movePowerTitle = document.createElement("h5");
+    movePowerTitle.innerText = "Power";
+    movePowerContainer.appendChild(movePowerTitle);
+
+    const movePowerValue = document.createElement("p");
+    let powerVal = move.power;
+    if (!powerVal) {
+      powerVal = "---"
+    }
+    movePowerValue.innerText = powerVal;
+    movePowerContainer.appendChild(movePowerValue);
+
+    // Move Accuracy
+
+    const moveAccuracyContainer = document.createElement("div");
+    moveAccuracyContainer.classList.add("battle-move-stat");
+    moveStatsContainer.appendChild(moveAccuracyContainer);
+
+    const moveAccuracyTitle = document.createElement("h5");
+    moveAccuracyTitle.innerText = "Accuracy";
+    moveAccuracyContainer.appendChild(moveAccuracyTitle);
+
+    const moveAccuracyValue = document.createElement("p");
+    let accuracyVal = move.accuracy;
+    if (!accuracyVal) {
+      accuracyVal = "---"
+    }
+    moveAccuracyValue.innerText = accuracyVal;
+    moveAccuracyContainer.appendChild(moveAccuracyValue);
+
+    // Move Properties
+
+    const moveProperties = document.createElement("div");
+    moveProperties.classList.add("battle-move-properties");
+    moveDetails.appendChild(moveProperties);
+
+    // ==== Give this the flavor text when added ================================= 
+    const moveFlavorText = document.createElement("p");
+    moveFlavorText.innerText = "lorem ipsum"
+    moveProperties.appendChild(moveFlavorText);
+    // ==== Give this the flavor text when added =================================
+
+    const moveTypesContainer = document.createElement("div");
+    moveTypesContainer.classList.add("battle-move-types");
+    moveProperties.appendChild(moveTypesContainer);
+
+    const moveType = document.createElement("p");
+    moveType.classList.add(move.type);
+    moveType.innerText = move.type;
+    moveTypesContainer.appendChild(moveType);
+
+    const moveClass = document.createElement("p");
+    moveClass.classList.add(move.damageClass);
+    moveClass.innerText = move.damageClass;
+    moveTypesContainer.appendChild(moveClass);
+  })
+}
+
+/**
+ * Sets the image for you/enemy on the Battle Screen.
+ * @param {number} pokemon - party.currentParty[] <- index number 
+ * @param {string} person - "trainer" / "leader" - Who we are editing
+ */
+const setPokemonImg = (pokemon, person) => {
+  const pokemonDisplay = document.getElementById(`${person}-battle-display`);
+  pokemonDisplay.innerHTML = "";
+
+  const pokemonDisplaySprite = document.createElement("img");
+  if (person === "trainer") {
+    pokemonDisplaySprite.setAttribute("src", party.currentParty[pokemon].sprites.back_default);
+  } else {
+    pokemonDisplaySprite.setAttribute("src", gymLeader.party[pokemon].sprites.front_default);
+  }
+  pokemonDisplay.appendChild(pokemonDisplaySprite);
+}
+
+/**
+ * Sets the status panel for the selected team
+ * @param {*} pokemon - party.currentParty[] <- index number 
+ * @param {*} person - "trainer" / "leader" - Who we are editing
+ */
+const setStatusPanel = (pokemon, person) => {
+
+  if (person === "trainer") {
+    pokemon = party.currentParty[pokemon];
+  } else {
+    pokemon = gymLeader.party[pokemon];
+  }
+
+  const statPanel = document.getElementById(`battle-${person}-stats`)
+
+  statPanel.innerHTML = "";
+
+  const statDetails = document.createElement("div");
+  statDetails.classList.add("battle-pokemon-details");
+  statPanel.appendChild(statDetails);
+
+  const currentName = document.createElement("h3");
+  currentName.innerText = pokemon.name;
+  statDetails.appendChild(currentName);
+
+  const health = document.createElement("p");
+  health.id = `${person}-health`;
+  health.innerText = `${pokemon.stats[0].base_stat}/${pokemon.stats[0].base_stat}`
+  statDetails.appendChild(health);
+
+  const healthBarContainer = document.createElement("div");
+  healthBarContainer.classList.add("health-bar-container")
+  statPanel.appendChild(healthBarContainer);
+
+  const healthBar = document.createElement("div");
+  healthBar.id = `${person}-health-bar`;
+  healthBar.style.width = "100%";
+  healthBarContainer.appendChild(healthBar);
+
+
+}
+
+const battleText = (person, action, delay) => {
+  const descriptionBox = document.getElementById("fight-description-box");
+  const descriptionText = document.createElement("p")
+  descriptionText.id = "fight-description-text";
+
+  let moveName = ""
+  let actor = ""
+
+  if (action === "swap") {
+    moveName = "switched Pokemon"
+    actor = "You"
+  } else {
+    moveName = `used ${action.name}`
+    if (person === "trainer") {
+      actor = party.currentParty[party.activePokemon].name.replaceAll("-", " ");
+    } else {
+      actor = gymLeader.party[gymLeader.activePokemon].name.replaceAll("-", " ");
+    }
+  }
+
+  const textOutput = `${actor} ${moveName}`;
+
+  descriptionText.innerText = textOutput;
+  descriptionBox.appendChild(descriptionText);
+
+  setTimeout(() => {
+    descriptionBox.removeChild(descriptionText);
+  }, delay);
+}
+
+const battleAttack = async (move, person) => {
+  console.log(`${person} uses ${move.name}`);
+  battleText(person, move, 4000);
+  
 }
 
 
 
+const battleAction = async (action, value) => {
+
+  // Start by the enemy selecting an attack
+  const opponentPokemon = gymLeader.party[gymLeader.activePokemon];
+  const opponentAttack = opponentPokemon.movesEquipped[Math.floor(Math.random() * opponentPokemon.movesEquipped.length)];
+
+  const playerPokemon = party.currentParty[party.activePokemon];
+  let playerAttack = party.currentParty[party.activePokemon].movesEquipped[value];
+
+
+  if (action == "swap") {
+    battleStall = true;
+    // Since the  user swaps pokemon, they forfeit their turn, and get attacked by the enemy.
+    playerAttack = "Swap Pokemon"
+    battleText("trainer", "swap", 4000);
+    await sleep(4000);
+    battleAttack(opponentAttack, "leader");
+    battleStall = false;
+
+  } else {
+
+    if (value === "struggle") {
+      playerAttack = await struggle;
+    }
+
+    const opponentPriority = opponentAttack.priority;
+    const playerPriority = playerAttack.priority;
+
+    const opponentSpeed = opponentPokemon.stats[5].base_stat;
+    const playerSpeed = playerPokemon.stats[5].base_stat;
+
+    // Opponent was faster, so they attack first
+    const opponentAttacksFirst = async () => {
+      console.clear();
+      console.log("Opponent was faster")
+      battleAttack(opponentAttack, "leader");
+      await sleep(4000);
+      battleAttack(playerAttack, "trainer");
+      await sleep(4000);
+      battleStall = false;
+    }
+
+    // Player was faster, so they attack first
+    const playerAttacksFirst = async () => {
+      console.clear();
+      console.log("Player was faster")
+      battleAttack(playerAttack, "trainer");
+      await sleep(4000);
+      battleAttack(opponentAttack, "leader");
+      await sleep(4000);
+      battleStall = false;
+    }
+
+    // Check for move priority
+    if (playerPriority > opponentPriority) { // Player has greater Priority
+      playerAttacksFirst();
+    } else if (opponentPriority > playerPriority) { // Opponent has greater Priority
+      opponentAttacksFirst();
+    } else {  // Priorities Tied
+      if (opponentSpeed > playerSpeed) {  // Opponent has more Speed
+        opponentAttacksFirst();
+      } else { // Player has Equal/More Speed
+        playerAttacksFirst();
+      }
+    }
+
+
+  }
+}
+
+
+
+
+/**
+ * Upon pokemon change request, this calls all change requests needed for the battle!
+ * @param {number} pokemon - The clicked pokemon card event in the 'Change Pokemon' card
+ * @param {string} person - "trainer" / "leader" - Who we are editing
+ */
+const battleTeamSwap = (pokemon, person) => {
+  if (!battleStall) {
+    if (person === "trainer") {
+      if (pokemon != party.activePokemon) {
+        party.activePokemon = pokemon;
+        setPokemonImg(pokemon, "trainer");
+        setMoveSelection(pokemon);
+        setStatusPanel(pokemon, "trainer");
+        battleAction("swap");
+      }
+    } else {
+      setStatusPanel(pokemon, "leader");
+      setPokemonImg(pokemon, "leader");
+    }
+  }
+}
+
+
+const battleMoveSelect = (moveID) => {
+  const pokemon = party.currentParty[party.activePokemon];
+  const move = pokemon.movesEquipped[moveID];
+
+  if (!battleStall) { // Makes sure the round has neded before acting.
+    battleStall = true;
+
+    if (move.ppRemaining > 0) { // Player has PP, can use move.
+      battleAction("attack", moveID); // Starts Battle Sequence with Move Selected
+      move.ppRemaining -= 1;  // 1 Less PP available on selected move
+      document.getElementById(move.name).querySelector(".battle-move-pp").innerText = `${move.ppRemaining}/${move.pp}`
+    } else { // User has used all move pps.
+      let movesAvailable = null; // Default State
+      pokemon.movesEquipped.forEach((moveOther) => { // Go through every move the user has
+        if (moveOther.ppRemaining != 0) { // If any move has available PP
+          movesAvailable = true;  // Return true
+        }
+      });
+      if (movesAvailable != true) { // User is out of PP on all moves
+        battleAction("attack", "struggle"); // The player uses struggle
+      }
+    }
+  }
+
+}
 
 
 // -------------------------------------
@@ -1915,7 +2148,14 @@ const loadPartyPage = () => {
 }
 
 
-const loadBattlePage = () => {
+const loadBattlePage = async () => {
+
+  const types = ["normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "steel", "dragon", "dark", "fairy"]
+  const randomType = types[Math.floor(Math.random() * types.length)]
+  await gymLeader.generateTeam(randomType);
+
+
+  await sleep(1500);
 
   const battlePage = document.getElementById("battle");
 
@@ -1935,60 +2175,33 @@ const loadBattlePage = () => {
   fightPanel.id = "fight-panel";
   battleLeftColumn.appendChild(fightPanel);
 
+  const fightDescription = document.createElement("div");
+  fightDescription.id = "fight-description-box";
+  fightPanel.appendChild(fightDescription);
+
   // Fight Elements
   const fightingPokemon = ["trainer", "leader"];
   fightingPokemon.forEach((whoIS) => {
 
     // Fight Stat Bars
-    let pokemon = null;
-    if (whoIS === "trainer") { 
-      pokemon = party.currentParty[0];
-    } else {
-      pokemon = gymLeader.party[0];
-    }
-    console.log(pokemon);
 
     const statPanel = document.createElement("div");
     statPanel.id = `battle-${whoIS}-stats`;
     statPanel.classList.add("battle-stat-panel");
     fightPanel.appendChild(statPanel);
 
-    const statDetails = document.createElement("div");
-    statDetails.classList.add("battle-pokemon-details");
-    statPanel.appendChild(statDetails);
 
-    const currentName = document.createElement("h3");
-    currentName.innerText = pokemon.name;
-    statDetails.appendChild(currentName);
+    setStatusPanel(0, whoIS)
 
-    const health = document.createElement("p");
-    health.id = `${whoIS}-health`;
-    health.innerText = `${pokemon.stats[0].base_stat}/${pokemon.stats[0].base_stat}`
-    statDetails.appendChild(health);
 
-    const healthBarContainer = document.createElement("div");
-    healthBarContainer.classList.add("health-bar-container")
-    statPanel.appendChild(healthBarContainer);
-
-    const healthBar = document.createElement("div");
-    healthBar.id = `${whoIS}-health-bar`;
-    healthBar.style.width = "100%";
-    healthBarContainer.appendChild(healthBar);
 
     // Fight Pokemon
-
     const pokemonDisplay = document.createElement("div");
     pokemonDisplay.id = `${whoIS}-battle-display`;
     pokemonDisplay.classList.add("battle-pokemon-display")
     fightPanel.appendChild(pokemonDisplay);
 
-    const pokemonDisplaySprite = document.createElement("img");
-    if (whoIS === "trainer") {
-      pokemonDisplaySprite.setAttribute("src", pokemon.sprites.back_default);
-    } else {
-      pokemonDisplaySprite.setAttribute("src", pokemon.sprites.front_default);
-    }
-    pokemonDisplay.appendChild(pokemonDisplaySprite);
+    setPokemonImg(0, whoIS);
   })
 
   // Team Panel
@@ -2009,12 +2222,16 @@ const loadBattlePage = () => {
 
   // Team Like Pokemon Elements
 
-  party.currentParty.forEach((pokemon) => { // For each pokemon within the party
+  party.currentParty.forEach((pokemon, index) => { // For each pokemon within the party
 
     const teamListElement = document.createElement("li");
-    teamListElement.id = pokemon.name;
+    teamListElement.id = `team-${index}`;
+    if (index === 0) {
+      teamListElement.classList.add("active-pokemon");
+    }
     teamListElement.addEventListener("click", (event) => {
-      battleTeamSwap(event);
+      const pokeID = parseInt(event.currentTarget.id.replace("team-", ""))
+      battleTeamSwap(pokeID, "trainer");
     });
     teamList.appendChild(teamListElement);
 
@@ -2051,115 +2268,13 @@ const loadBattlePage = () => {
   moveContainer.appendChild(moveContainerHeader);
 
   // Move List Container
-  
+
   const moveListContainer = document.createElement("ol");
   moveListContainer.classList.add("battle-moves-container");
   moveContainer.appendChild(moveListContainer);
 
   // Move Element
-  party.currentParty[0].movesEquipped.forEach((move) => {
-
-    const moveElement = document.createElement("li");
-    moveElement.id = move.name;
-    moveElement.classList.add("battle-move");
-    moveElement.addEventListener("click", (event) => {
-      battleMoveSelect(event);
-    });
-    moveListContainer.appendChild(moveElement);
-
-    // Move Header
-
-    const moveHeaderContainer = document.createElement("div");
-    moveHeaderContainer.classList.add("battle-move-inner-header");
-    moveElement.appendChild(moveHeaderContainer);
-
-    const moveHeader = document.createElement("h3");
-    moveHeader.innerText = move.name;
-    moveHeaderContainer.appendChild(moveHeader);
-
-    const movePP = document.createElement("p");
-    movePP.classList.add("battle-move-pp");
-    let ppVal = move.pp;
-    if (!ppVal) {
-      ppVal = "---"
-    }
-    movePP.innerText = `${ppVal}/${ppVal}`
-    moveHeaderContainer.appendChild(movePP);
-
-    // Move Details
-
-    const moveDetails = document.createElement("div");
-    moveDetails.classList.add("battle-move-details-container")
-    moveElement.appendChild(moveDetails);
-
-    const moveStatsContainer = document.createElement("div");
-    moveStatsContainer.classList.add("battle-move-stats");
-    moveDetails.appendChild(moveStatsContainer);
-
-    // Move Power
-
-    const movePowerContainer = document.createElement("div");
-    movePowerContainer.classList.add("battle-move-stat");
-    moveStatsContainer.appendChild(movePowerContainer);
-
-    const movePowerTitle = document.createElement("h5");
-    movePowerTitle.innerText = "Power";
-    movePowerContainer.appendChild(movePowerTitle);
-
-    const movePowerValue = document.createElement("p");
-    let powerVal = move.power;
-    if (!powerVal) {
-      powerVal = "---"
-    }
-    movePowerValue.innerText = powerVal;
-    movePowerContainer.appendChild(movePowerValue);
-
-    // Move Accuracy
-
-    const moveAccuracyContainer = document.createElement("div");
-    moveAccuracyContainer.classList.add("battle-move-stat");
-    moveStatsContainer.appendChild(moveAccuracyContainer);
-
-    const moveAccuracyTitle = document.createElement("h5");
-    moveAccuracyTitle.innerText = "Accuracy";
-    moveAccuracyContainer.appendChild(moveAccuracyTitle);
-
-    const moveAccuracyValue = document.createElement("p");
-    let accuracyVal = move.accuracy;
-    if (!accuracyVal) {
-      accuracyVal = "---"
-    }
-    moveAccuracyValue.innerText = accuracyVal;
-    moveAccuracyContainer.appendChild(moveAccuracyValue);
-    
-    // Move Properties
-
-    const moveProperties = document.createElement("div");
-    moveProperties.classList.add("battle-move-properties");
-    moveDetails.appendChild(moveProperties);
-
-    // ==== Give this the flavor text when added ================================= 
-    const moveFlavorText = document.createElement("p");
-    moveFlavorText.innerText = "lorem ipsum"
-    moveProperties.appendChild(moveFlavorText);
-    // ==== Give this the flavor text when added =================================
-
-    const moveTypesContainer = document.createElement("div");
-    moveTypesContainer.classList.add("battle-move-types");
-    moveProperties.appendChild(moveTypesContainer);
-
-    const moveType = document.createElement("p");
-    moveType.classList.add(move.type);
-    moveType.innerText = move.type;
-    moveTypesContainer.appendChild(moveType);
-
-    const moveClass = document.createElement("p");
-    moveClass.classList.add(move.damageClass);
-    moveClass.innerText = move.damageClass;
-    moveTypesContainer.appendChild(moveClass);
-  })
-
-
+  setMoveSelection(party.activePokemon);
 }
 
 
@@ -2273,6 +2388,7 @@ window.addEventListener("scroll", () => {
   }
 });
 
+struggle = fetchData("move/struggle");
 loadLandingPage();
 
 
